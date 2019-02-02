@@ -9,14 +9,15 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 
-#from logo.parser import logoParser
+from personaLib.book import listAll
 
 def index( _request ):
     return render( _request, 'personaLib.html', {} )
 
-def personaLib( _request ):
-    if "POST" == _request.method:
+def bookList( _request ):
+    if "GET" == _request.method:
 #        return HttpResponse( logoParser( _request.POST[ "script" ] ) )
-        return HttpResponse( "alert( 'RestFul API --> JSon' );" )
+        return HttpResponse( listAll() )
+#        return HttpResponse( "{ \"title\": \"A medida do universo\", \"author\": \"Asimov, Isaac\" }" )
 
-    return HttpResponse( "alert( 'RestFul API --> JSon' );" )
+    return HttpResponse( "alert( 'Unsuported method' );" )

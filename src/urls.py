@@ -12,5 +12,5 @@ import  views
 
 urlpatterns = [
     path( 'index/', views.index ),
-    path( 'personaLib/', views.personaLib ),
+    path( 'personaLib/book', views.bookList ),
 ]
