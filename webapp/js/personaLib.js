@@ -22,9 +22,8 @@ function personaLibShowAllBooks() {
             $("#content").append("<div id=\"bookList\" class=\"list-group\">");
 
             books = JSON.parse(_result);
-            console.log("json object: " + books);
             books.books.forEach(book => {
-                $("#bookList").append("<a href=\"" + book.id + "\" class=\"list-group-item list-group-item-action flex-column align-items-start active\">");
+                $("#bookList").append("<a id=\"" + book.id + "\" href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
                 $("#" + book.id).append("<p class=\"mb-1\">" + book.title + "</p>");
                 $("#" + book.id).append("<small>" + book.author + "</small>");
             });

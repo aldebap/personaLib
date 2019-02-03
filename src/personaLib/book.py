@@ -23,7 +23,7 @@ class Book:
             , 'author': _ref.author
         }
 
-        return json.dumps( attributes )
+        return attributes
 
 #    def listAll( self ):
 
@@ -34,11 +34,8 @@ def listAll():
     bookList.append( Book( "2345", "Manual de DevOps", [ "Kim, Gene", "Humble, Jez", "Debois, Patrick", "Willis, John" ] ) )
     bookList.append( Book( "3456", "Probability, Statistics, and Stochastic Processes", [ "Olofsson, Peter" ] ) )
 
-    serializedBookList = ""
+    serializedBookList = []
     for book in bookList:
-        if 0 == len( serializedBookList ):
-            serializedBookList = Book.serialize( book )
-        else:
-            serializedBookList = serializedBookList + ", " + Book.serialize( book )
+        serializedBookList.append( Book.serialize( book ) )
 
-    return json.dumps( { 'books': [ serializedBookList ] } )
+    return json.dumps( { 'books': serializedBookList } )
