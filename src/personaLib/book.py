@@ -10,14 +10,16 @@ import  json
 
 class Book:
 
-    def __init__( self, _title, _author ):
+    def __init__( self, _id, _title, _author ):
+        self.id = _id
         self.title = _title
         self.author = _author
 
     @classmethod
     def serialize( cls, _ref ):
         attributes = {
-            'title': _ref.title
+            'id': _ref.id
+            , 'title': _ref.title
             , 'author': _ref.author
         }
 
@@ -28,8 +30,15 @@ class Book:
 def listAll():
     bookList = []
 
-    bookList.append( Book( "A medida do universo", [ "Asimov, Isaac" ] ) )
-    bookList.append( Book( "Manual de DevOps", [ "Kim, Gene", "Humble, Jez", "Debois, Patrick", "Willis, John" ] ) )
-    bookList.append( Book( "Probability, Statistics, and Stochastic Processes", [ "Olofsson, Peter" ] ) )
+    bookList.append( Book( "1234", "A medida do universo", [ "Asimov, Isaac" ] ) )
+    bookList.append( Book( "2345", "Manual de DevOps", [ "Kim, Gene", "Humble, Jez", "Debois, Patrick", "Willis, John" ] ) )
+    bookList.append( Book( "3456", "Probability, Statistics, and Stochastic Processes", [ "Olofsson, Peter" ] ) )
 
-    Book.serialize( bookList[ 0 ] )
+    serializedBookList = ""
+    for book in bookList:
+        if 0 == len( serializedBookList ):
+            serializedBookList = Book.serialize( book )
+        else:
+            serializedBookList = serializedBookList + ", " + Book.serialize( book )
+
+    return json.dumps( { 'books': [ serializedBookList ] } )

@@ -18,6 +18,5 @@ def bookList( _request ):
     if "GET" == _request.method:
 #        return HttpResponse( logoParser( _request.POST[ "script" ] ) )
         return HttpResponse( listAll() )
-#        return HttpResponse( "{ \"title\": \"A medida do universo\", \"author\": \"Asimov, Isaac\" }" )
 
     return HttpResponse( "alert( 'Unsuported method' );" )
