@@ -42,38 +42,37 @@
 		<form class="form-inline my-2 my-lg-0">
 			<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
 			<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+			<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button>
 		</form>
 	</nav>
 
 	<!-- content -->
-	<div class="container-fluid">
-		<div id="content"></div>
+	<div id="content" class="container-fluid"></div>
 
-		<!-- add book Modal HTML -->
-		<div id="addBookModal" class="modal fade">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<form>
-						<div class="modal-header">
-							<h4 class="modal-title">New Book</h4>
-							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	<!-- "add new book" form -->
+	<div id="addBookModal" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<form>
+					<div class="modal-header">
+						<h4 class="modal-title">New Book</h4>
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<label>Title</label>
+							<input type="text" class="form-control" required>
 						</div>
-						<div class="modal-body">
-							<div class="form-group">
-								<label>Title</label>
-								<input type="text" class="form-control" required>
-							</div>
-							<div class="form-group">
-								<label>Author</label>
-								<input type="text" class="form-control" required>
-							</div>
+						<div class="form-group">
+							<label>Author</label>
+							<input type="text" class="form-control" required>
 						</div>
-						<div class="modal-footer">
-							<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-							<input type="submit" class="btn btn-success" value="Add">
-						</div>
-					</form>
-				</div>
+					</div>
+					<div class="modal-footer">
+						<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+						<input type="submit" class="btn btn-success" value="Add">
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>

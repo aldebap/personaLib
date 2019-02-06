@@ -19,13 +19,11 @@ function personaLibShowAllBooks() {
 
             //  crete the list of books
             $("#content").empty();
-            $("#content").append("<div class=\"nav\">");
-            $(".nav").append("<div class=\"col-sm-6\"><h2><b>Books</b></h2></div>");
-            $(".nav").append("<div id=\"booksToolbar\" class=\"col-sm-6\"></div>");
-            //            $("#booksToolbar").append("<a href=\"#addBookModal\" class=\"btn btn-success\" data-toggle=\"modal\"><span>New Book</span></a>");
-            //            $("#booksToolbar").append("<a href=\"#deleteBookModal\" class=\"btn btn-danger\" data-toggle=\"modal\"><span>Delete</span></a>");
-            $("#booksToolbar").append("<button type=\"button\" class=\"btn btn-success\" data-toggle=\"modal\" data-target=\"#addBookModal\">New Book</button>");
-            $("#booksToolbar").append("<button type=\"button\" class=\"btn btn-danger\" data-toggle=\"modal\" data-target=\"#deleteBookModal\">Delete</button>");
+            //            $("#content").append("<div class=\"nav\">");
+            //            $(".nav").append("<div class=\"col-sm-6\"><h2><b>Books</b></h2></div>");
+            //            $(".nav").append("<div id=\"booksToolbar\" class=\"col-sm-6\"></div>");
+            //            $("#booksToolbar").append("<button type=\"button\" class=\"btn btn-success\" data-toggle=\"modal\" data-target=\"#addBookModal\">New Book</button>");
+            //            $("#booksToolbar").append("<button type=\"button\" class=\"btn btn-danger\" data-toggle=\"modal\" data-target=\"#deleteBookModal\">Delete</button>");
 
             $("#content").append("<div id=\"bookList\" class=\"list-group\">");
 
