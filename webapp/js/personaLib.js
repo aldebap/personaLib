@@ -5,6 +5,10 @@
 function personaLibInit() {
 }
 
+/* *
+    * show all books
+    */
+
 function personaLibShowAllBooks() {
 
     //  call book service on the personaLib server
@@ -35,4 +39,35 @@ function personaLibShowAllBooks() {
             });
         }
     });
+}
+
+/* *
+   * show the add new book form
+   */
+
+function personaLibAddNewBook() {
+
+    console.log("new book form");
+    //  show the add new book form
+    $("#addBookModal").show();
+}
+
+/* *
+   * show all authors
+   */
+
+function personaLibShowAllAuthors() {
+
+    //  crete the list of authors
+    $("#content").empty();
+}
+
+/* *
+   * show all publishers
+   */
+
+function personaLibShowAllPublishers() {
+
+    //  crete the list of publishers
+    $("#content").empty();
 }

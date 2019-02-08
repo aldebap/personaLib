@@ -6,27 +6,28 @@
 
 <head>
 	<!-- Required meta tags for jQuery -->
-    	<meta charset="utf-8" />
-    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-	<link rel="stylesheet" href="{% static 'bootstrap.min.css' %}"></link>
+	<link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+	</link>
 
-    <style type="text/css">
-        .ajax-loader {
-            z-index: +100 !important;
-            background-color: rgba(255,255,255,0.7);
-            position: absolute;
-            width: 100%;
-            height:100%;
-        }
+	<style type="text/css">
+		.ajax-loader {
+			z-index: +100 !important;
+			background-color: rgba(255, 255, 255, 0.7);
+			position: absolute;
+			width: 100%;
+			height: 100%;
+		}
 
-        .ajax-loader img {
-            position: relative;
-            top:50%;
-            left:50%;
-        }
-    </style>
-	
+		.ajax-loader img {
+			position: relative;
+			top: 50%;
+			left: 50%;
+		}
+	</style>
+
 	<script type="text/javascript" src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/popper.min.js' %}"></script>
@@ -38,40 +39,45 @@
 </head>
 
 <!-- Page body -->
+
 <body>
 	<!-- menu panel -->
 	{% csrf_token %}
 	<!-- Navigation bar -->
 	<nav class="navbar navbar-dark bg-dark">
+		<!--
 		<a class="navbar-brand" href="index.html">
-            		<img src="img/logo.png" width="30" height="30" alt="" />
-        	</a>
-		
-        	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContentViews" aria-controls="navbarContentViews" aria-expanded="false" aria-label="Toggle navigation">
-            		<span class="navbar-toggler-icon"></span>
-        	</button>
+			<img src="img/logo.png" width="30" height="30" alt="" />
+		</a>
+
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContentViews" aria-controls="navbarContentViews"
+		 aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
 
 		<div class="collapse navbar-collapse" id="navbarContentViews">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-					 aria-expanded="false">
-						Menu
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" onclick="javascript:personaLibShowAllBooks(); return false;">Books</a>
-						<a class="dropdown-item" href="#">Authors</a>
-						<a class="dropdown-item" href="#">Publishers</a>
-					</div>
-				</li>
+				-->
+		<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
+		 aria-expanded="false">
+			Menu
+		</a>
+		<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+			<a class="dropdown-item" onclick="javascript:personaLibShowAllBooks(); return false;">Books</a>
+			<a class="dropdown-item" onclick="javascript:personaLibShowAllAuthors(); return false;">Authors</a>
+			<a class="dropdown-item" onclick="javascript:personaLibShowAllPublishers(); return false;">Publishers</a>
+		</div>
+		<!--				</li>
 			</ul>
 		</div>
+	-->
 
 		<form class="form-inline my-2 my-lg-0">
 			<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
 			<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-<!--			<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button> -->
-			<button type="button" class="btn btn-success" onclick="javascript:$( #addBookModal ).show(); return false;">New Book</button>
+			<!--			<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button> -->
+			<button type="button" class="btn btn-success" onclick="javascript:personaLibAddNewBook(); return false;">New Book</button>
 		</form>
 	</nav>
 
