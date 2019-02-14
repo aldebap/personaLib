@@ -76,8 +76,7 @@
 		<form class="form-inline my-2 my-lg-0">
 			<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
 			<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-			<!--			<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button> -->
-			<button type="button" class="btn btn-success" onclick="javascript:personaLibAddNewBook(); return false;">New Book</button>
+			<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button>
 		</form>
 	</nav>
 
@@ -85,8 +84,8 @@
 	<div class="container-fluid">
 
 		<!-- "add new book" form -->
-		<div id="addBookModal" class="modal fade">
-			<div class="modal-dialog">
+		<div id="addBookModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addBookModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<form>
 						<div class="modal-header">
