@@ -1,0 +1,200 @@
+#!	/usr/bin/ksh
+
+#	set environment
+export  GOROOT=${GOROOT:=/usr/local/go}
+export	PATH=${PATH}:$( go env GOPATH )/bin
+
+export  PROJECT_NAME='shoppingCart'
+export  PROJECT_PATH=$( pwd )
+export	PROJECT_DEPENDENCIES='github.com/gorilla/mux
+	google.golang.org/protobuf
+	google.golang.org/grpc
+	google.golang.org/grpc/codes
+	google.golang.org/grpc/status'
+export	PROJECT_SOURCE='app.go main.go'
+export	PROJECT_PACKAGES='checkout discount product'
+export	PROJECT_TARGET='bin/shoppingCart'
+export  GOPATH="${PROJECT_PATH}"
+
+#	if necessary, set default target
+export	TARGET_LIST="$*"
+
+if [ -z "${TARGET_LIST}" ]
+then
+	export	TARGET_LIST='compile'
+fi
+
+if [ "${TARGET_LIST}" == 'all' ]
+then
+	export	TARGET_LIST='dependencies compile test package verify'
+fi
+
+#	help message
+if [ "${TARGET_LIST}" == 'help' -o "${TARGET_LIST}" == '--help' ]
+then
+	cat <<HELP_MESSAGE
+$( basename ${0} ): specify one or more targets:
+	clean: remove all required packages and the target file
+	dependencies: install all dependencies
+	compile: compile and link source code
+	test: execute unit tests
+	package: package the target in a container
+	verify: execute integration tests
+	run: run the target
+HELP_MESSAGE
+
+	exit 0
+fi
+
+#	perform every specified target
+for TARGET in ${TARGET_LIST}
+do
+	case ${TARGET} in 
+
+	#	remove all required packages and the target file
+		clean )
+		echo '+++ removing required packages and the target file'
+
+		rm -rf pkg/*
+		rm -rf src/go.mod src/go.sum
+
+		for PACKAGE in ${PROJECT_PACKAGES}
+		do
+			rm -rf src/${PACKAGE}/go.mod src/${PACKAGE}/go.sum
+		done
+
+		rm -f ${PROJECT_TARGET}
+		;;
+
+	#	install all dependencies
+		dependencies )
+		echo '+++ downloading and installing all dependencies'
+
+		#	main packge dependencies
+		cd src
+		go mod init aldebap/${PROJECT_NAME}
+
+		for MODULE in ${PROJECT_DEPENDENCIES}
+		do
+			go get -u ${MODULE}
+		done
+
+		for PACKAGE in ${PROJECT_PACKAGES}
+		do
+			echo "require ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished" >> go.mod
+			echo "replace ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished => ../src/${PACKAGE}" >> go.mod
+			#echo go mod edit -replace ${PROJECT_NAME}/${PACKAGE}=../src/${PACKAGE}
+		done
+
+		cd ..
+
+		#	create project packages module files
+		for PACKAGE in ${PROJECT_PACKAGES}
+		do
+			cd src/${PACKAGE}
+			go mod init ${PROJECT_NAME}/${PACKAGE}
+			cd ../..
+		done
+
+		#	TODO: how to automate this packages interdependencies ?
+		cd src/checkout
+		go get -u google.golang.org/protobuf
+		go get -u google.golang.org/grpc
+		go get -u google.golang.org/grpc/codes
+		go get -u google.golang.org/grpc/status
+		echo "require ${PROJECT_NAME}/discount v0.0.0-unpublished" >> go.mod
+		echo "replace ${PROJECT_NAME}/discount v0.0.0-unpublished => ../discount" >> go.mod
+		echo "require ${PROJECT_NAME}/product v0.0.0-unpublished" >> go.mod
+		echo "replace ${PROJECT_NAME}/product v0.0.0-unpublished => ../product" >> go.mod
+		cd ../..
+
+		cd src/discount
+		go get -u github.com/golang/protobuf/proto
+		go get -u google.golang.org/grpc
+		go get -u google.golang.org/grpc/codes
+		go get -u google.golang.org/grpc/status
+		cd ../..
+
+		#	install tools required for proto compilation
+		go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
+		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
+		;;
+
+	#	compile and link source code
+		compile )
+		echo '+++ compiling and linking source code'
+
+		protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative src/discount/discount.proto
+
+		rm -f ${PROJECT_TARGET}
+
+		if [ ! -d $( dirname ${PROJECT_TARGET} ) ]
+		then
+			mkdir $( dirname ${PROJECT_TARGET} )
+		fi
+
+		cd src
+		go build -o ../${PROJECT_TARGET} ${PROJECT_SOURCE}
+		cd ..
+		;;
+
+	#	execute unit tests
+		test )
+		echo '+++ running unit tests'
+
+		export	TEST_RESULT=0
+
+		cd src
+		go test -v
+		if [ $? -ne 0 ]
+		then
+			export	TEST_RESULT=-1
+		fi
+		cd ..
+
+		for PACKAGE in ${PROJECT_PACKAGES}
+		do
+			cd src/${PACKAGE}
+			go test -v
+			if [ $? -ne 0 ]
+			then
+				export	TEST_RESULT=-1
+			fi
+			cd ../..
+		done
+
+		if [ ${TEST_RESULT} -ne 0 ]
+		then
+			exit ${TEST_RESULT}
+		fi
+		;;
+
+	#	package the target in a Docker image
+		package )
+		echo '+++ package the target in a Docker image'
+		docker build --tag shopping-cart .
+		;;
+
+	#	execute integration tests
+		verify )
+		echo '+++ execute integration tests'
+
+		docker-compose up -d
+		newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
+		docker-compose stop
+
+		;;
+
+	#	run the target
+		run )
+		echo '+++ run the target'
+
+		docker-compose up
+		;;
+
+	#	unknown target
+		* )
+		echo "[error] unknown target ${TARGET}"
+		;;
+	esac
+done
