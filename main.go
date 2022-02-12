@@ -8,7 +8,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -20,18 +19,9 @@ func main() {
 	//	splash screen
 	fmt.Printf(">>> personaLib Server\n\n")
 
-	//	get configuration parameters from environment
-	databaseURL := os.Getenv("DATABASEURL")
-	servicePort := os.Getenv("SERVICEPORT")
-
-	if len(servicePort) == 0 {
-		servicePort = ":8080"
-	} else if servicePort[0] != ':' {
-		servicePort = ":" + servicePort
-	}
-
 	//	start personLib application
-	personaLibApp := New(databaseURL)
+	var config = GetFromEnv()
+	var personaLibApp App
 
-	personaLibApp.Run(servicePort)
+	personaLibApp.Run(config)
 }

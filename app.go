@@ -11,35 +11,58 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"personaLib/author"
 )
 
-type App struct {
+type Config struct {
 	databaseURL string
-	dbClient    *mongo.Client
-	httpRouter  *mux.Router
+	timeout     time.Duration
+	servicePort string
+}
+
+type App struct {
+	config     *Config
+	dbClient   *mongo.Client
+	httpRouter *mux.Router
 }
 
 //	create a new application
-func New(databaseURL string) *App {
+func GetFromEnv() *Config {
 
-	return &App{
+	//	get configuration parameters from environment
+	databaseURL := os.Getenv("DATABASEURL")
+	servicePort := os.Getenv("SERVICEPORT")
+
+	if len(servicePort) == 0 {
+		servicePort = ":8080"
+	} else if servicePort[0] != ':' {
+		servicePort = ":" + servicePort
+	}
+
+	return &Config{
 		databaseURL: databaseURL,
+		timeout:     10 * time.Second,
+		servicePort: servicePort,
 	}
 }
 
 //	run the application
-func (a *App) Run(portNumber string) {
+func (a *App) Run(config *Config) {
 
 	var err error
 
+	a.config = config
+
 	//	connect to the database
-	clientOptions := options.Client().ApplyURI(a.databaseURL)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	clientOptions := options.Client().ApplyURI(a.config.databaseURL)
+	ctx, cancel := context.WithTimeout(context.Background(), a.config.timeout)
 
 	defer cancel()
 
@@ -50,15 +73,18 @@ func (a *App) Run(portNumber string) {
 
 	defer a.dbClient.Disconnect(ctx)
 
+	//	initialize enetities collections
+	author.InitCollection(a.dbClient)
+
 	//	start the Web Server
 	a.httpRouter = mux.NewRouter()
 
-	//	a.Router.HandleFunc("/author", author.getAll).Methods("GET")
+	a.httpRouter.HandleFunc("/author", getAllAccounts).Methods("GET")
 	//	a.Router.HandleFunc("/publisher", publisher.getAll).Methods("GET")
 	http.Handle("/", a.httpRouter)
 
 	//start and listen to requests
-	fmt.Printf("Listening port %s\n", portNumber)
+	fmt.Printf("Listening port %s\n", a.config.servicePort)
 
-	log.Panic(http.ListenAndServe(portNumber, a.httpRouter))
+	log.Panic(http.ListenAndServe(a.config.servicePort, a.httpRouter))
 }

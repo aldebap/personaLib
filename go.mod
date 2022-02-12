@@ -3,7 +3,7 @@ module aldebap/personaLib
 go 1.17
 
 require (
-	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
@@ -17,3 +17,7 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/text v0.3.5 // indirect
 )
+
+require personaLib/author v0.0.0-unpublished
+
+replace personaLib/author v0.0.0-unpublished => ./author
