@@ -10,29 +10,29 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"personaLib/author"
+	"personaLib/entity"
 )
 
 //	get author response
-type getAccountResponse struct {
+type getAuthorResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
 //	fetch all authors response
 type getAllAuthorResponse struct {
-	Author []getAccountResponse `json:"author"`
+	Author []getAuthorResponse `json:"author"`
 }
 
 //	get all authors API
-func getAllAccounts(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+func getAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all authors from database
-	var authorList []author.Author
+	var authorList []entity.Author
 
-	authorList, err := author.GetAll()
+	authorList, err := entity.GetAllAuthor()
 	if err != nil {
-		httpResponse.WriteHeader(http.StatusNotFound)
+		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -41,12 +41,53 @@ func getAllAccounts(httpResponse http.ResponseWriter, httpRequest *http.Request)
 
 	for _, item := range authorList {
 
-		var authorData = getAccountResponse{}
+		var authorData = getAuthorResponse{}
 
 		authorData.ID = item.Id
 		authorData.Name = item.Name
 
 		responseData.Author = append(responseData.Author, authorData)
+	}
+
+	httpResponse.Header().Add("Content-Type", "application/json")
+	httpResponse.WriteHeader(http.StatusOK)
+	json.NewEncoder(httpResponse).Encode(responseData)
+}
+
+//	get publisher response
+type getPublisherResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+//	fetch all publishers response
+type getAllPublisherResponse struct {
+	Author []getPublisherResponse `json:"publisher"`
+}
+
+//	get all publishers API
+func getAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+
+	//	get all publishers from database
+	var publisherList []entity.Publisher
+
+	publisherList, err := entity.GetAllPublisher()
+	if err != nil {
+		httpResponse.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	//	fill response payload
+	var responseData = getAllPublisherResponse{}
+
+	for _, item := range publisherList {
+
+		var publisherData = getPublisherResponse{}
+
+		publisherData.ID = item.Id
+		publisherData.Name = item.Name
+
+		responseData.Author = append(responseData.Author, publisherData)
 	}
 
 	httpResponse.Header().Add("Content-Type", "application/json")

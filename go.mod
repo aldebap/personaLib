@@ -18,6 +18,6 @@ require (
 	golang.org/x/text v0.3.5 // indirect
 )
 
-require personaLib/author v0.0.0-unpublished
+require personaLib/entity v0.0.0-unpublished
 
-replace personaLib/author v0.0.0-unpublished => ./author
+replace personaLib/entity v0.0.0-unpublished => ./entity

@@ -4,17 +4,14 @@
 //	Author entity
 ////////////////////////////////////////////////////////////////////////////////
 
-package author
+package entity
 
 import (
 	"context"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var authorCollection *mongo.Collection
 
 //	author attributes
 type Author struct {
@@ -22,13 +19,8 @@ type Author struct {
 	Name string `bson:"name,omitempty"`
 }
 
-//	set author collection
-func InitCollection(dbClient *mongo.Client) {
-	authorCollection = dbClient.Database("Bookshelf").Collection("Author")
-}
-
 //	get all author from database
-func GetAll() ([]Author, error) {
+func GetAllAuthor() ([]Author, error) {
 
 	//	get a cursor for the query
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)

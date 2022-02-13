@@ -18,7 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"personaLib/author"
+	"personaLib/entity"
 )
 
 type Config struct {
@@ -33,7 +33,7 @@ type App struct {
 	httpRouter *mux.Router
 }
 
-//	create a new application
+//	load the App configuration from environment variables
 func GetFromEnv() *Config {
 
 	//	get configuration parameters from environment
@@ -56,11 +56,11 @@ func GetFromEnv() *Config {
 //	run the application
 func (a *App) Run(config *Config) {
 
-	var err error
-
 	a.config = config
 
 	//	connect to the database
+	var err error
+
 	clientOptions := options.Client().ApplyURI(a.config.databaseURL)
 	ctx, cancel := context.WithTimeout(context.Background(), a.config.timeout)
 
@@ -73,14 +73,14 @@ func (a *App) Run(config *Config) {
 
 	defer a.dbClient.Disconnect(ctx)
 
-	//	initialize enetities collections
-	author.InitCollection(a.dbClient)
+	//	initialize entities collections
+	entity.InitCollections(a.dbClient)
 
 	//	start the Web Server
 	a.httpRouter = mux.NewRouter()
 
-	a.httpRouter.HandleFunc("/author", getAllAccounts).Methods("GET")
-	//	a.Router.HandleFunc("/publisher", publisher.getAll).Methods("GET")
+	a.httpRouter.HandleFunc("/author", getAllAuthors).Methods("GET")
+	a.httpRouter.HandleFunc("/publisher", getAllPublishers).Methods("GET")
 	http.Handle("/", a.httpRouter)
 
 	//start and listen to requests
