@@ -1,0 +1,243 @@
+{
+	"info": {
+		"_postman_id": "5cc42265-da91-4567-b949-78ebca8e203f",
+		"name": "Integrated Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Valid tests for /author",
+			"item": [
+				{
+					"name": "Get all authors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Valid tests for /publisher",
+			"item": [
+				{
+					"name": "Get all publishers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/publisher",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"publisher"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Valid tests for /book",
+			"item": [
+				{
+					"name": "Get all books",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}

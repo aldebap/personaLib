@@ -20,4 +20,8 @@ require (
 
 require personaLib/entity v0.0.0-unpublished
 
+require personaLib/controller v0.0.0-unpublished
+
 replace personaLib/entity v0.0.0-unpublished => ./entity
+
+replace personaLib/controller v0.0.0-unpublished => ./controller

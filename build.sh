@@ -14,7 +14,7 @@ export	PROJECT_DEPENDENCIES='github.com/gorilla/mux
 export	PROJECT_SOURCE='app.go main.go'
 export	PROJECT_PACKAGES='checkout discount product'
 export	PROJECT_TARGET='bin/shoppingCart'
-export  GOPATH="${PROJECT_PATH}"
+export  GOPATH="${GOPATH:=PROJECT_PATH}"
 
 #	if necessary, set default target
 export	TARGET_LIST="$*"
@@ -95,36 +95,11 @@ do
 			go mod init ${PROJECT_NAME}/${PACKAGE}
 			cd ../..
 		done
-
-		#	TODO: how to automate this packages interdependencies ?
-		cd src/checkout
-		go get -u google.golang.org/protobuf
-		go get -u google.golang.org/grpc
-		go get -u google.golang.org/grpc/codes
-		go get -u google.golang.org/grpc/status
-		echo "require ${PROJECT_NAME}/discount v0.0.0-unpublished" >> go.mod
-		echo "replace ${PROJECT_NAME}/discount v0.0.0-unpublished => ../discount" >> go.mod
-		echo "require ${PROJECT_NAME}/product v0.0.0-unpublished" >> go.mod
-		echo "replace ${PROJECT_NAME}/product v0.0.0-unpublished => ../product" >> go.mod
-		cd ../..
-
-		cd src/discount
-		go get -u github.com/golang/protobuf/proto
-		go get -u google.golang.org/grpc
-		go get -u google.golang.org/grpc/codes
-		go get -u google.golang.org/grpc/status
-		cd ../..
-
-		#	install tools required for proto compilation
-		go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
-		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
 		;;
 
 	#	compile and link source code
 		compile )
 		echo '+++ compiling and linking source code'
-
-		protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative src/discount/discount.proto
 
 		rm -f ${PROJECT_TARGET}
 
@@ -182,7 +157,6 @@ do
 		docker-compose up -d
 		newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
 		docker-compose stop
-
 		;;
 
 	#	run the target

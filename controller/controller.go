@@ -4,7 +4,7 @@
 //	personLib routes controller
 ////////////////////////////////////////////////////////////////////////////////
 
-package main
+package controller
 
 import (
 	"encoding/json"
@@ -25,7 +25,7 @@ type getAllAuthorResponse struct {
 }
 
 //	get all authors API
-func getAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all authors from database
 	var authorList []entity.Author
@@ -62,11 +62,11 @@ type getPublisherResponse struct {
 
 //	fetch all publishers response
 type getAllPublisherResponse struct {
-	Author []getPublisherResponse `json:"publisher"`
+	Publisher []getPublisherResponse `json:"publisher"`
 }
 
 //	get all publishers API
-func getAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+func GetAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all publishers from database
 	var publisherList []entity.Publisher
@@ -87,7 +87,50 @@ func getAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Reques
 		publisherData.ID = item.Id
 		publisherData.Name = item.Name
 
-		responseData.Author = append(responseData.Author, publisherData)
+		responseData.Publisher = append(responseData.Publisher, publisherData)
+	}
+
+	httpResponse.Header().Add("Content-Type", "application/json")
+	httpResponse.WriteHeader(http.StatusOK)
+	json.NewEncoder(httpResponse).Encode(responseData)
+}
+
+//	get book response
+type getBookResponse struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Publisher string `json:"publisher"`
+}
+
+//	fetch all books response
+type getAllBookResponse struct {
+	Book []getBookResponse `json:"book"`
+}
+
+//	get all books API
+func GetAllBooks(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+
+	//	get all books from database
+	var bookList []entity.Book
+
+	bookList, err := entity.GetAllBook()
+	if err != nil {
+		httpResponse.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	//	fill response payload
+	var responseData = getAllBookResponse{}
+
+	for _, item := range bookList {
+
+		var bookData = getBookResponse{}
+
+		bookData.ID = item.Id
+		bookData.Title = item.Title
+		bookData.Publisher = item.Publisher.Name
+
+		responseData.Book = append(responseData.Book, bookData)
 	}
 
 	httpResponse.Header().Add("Content-Type", "application/json")

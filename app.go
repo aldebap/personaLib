@@ -18,6 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"personaLib/controller"
 	"personaLib/entity"
 )
 
@@ -79,8 +80,10 @@ func (a *App) Run(config *Config) {
 	//	start the Web Server
 	a.httpRouter = mux.NewRouter()
 
-	a.httpRouter.HandleFunc("/author", getAllAuthors).Methods("GET")
-	a.httpRouter.HandleFunc("/publisher", getAllPublishers).Methods("GET")
+	a.httpRouter.HandleFunc("/author", controller.GetAllAuthors).Methods("GET")
+	a.httpRouter.HandleFunc("/publisher", controller.GetAllPublishers).Methods("GET")
+	a.httpRouter.HandleFunc("/book", controller.GetAllBooks).Methods("GET")
+
 	http.Handle("/", a.httpRouter)
 
 	//start and listen to requests
