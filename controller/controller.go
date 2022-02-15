@@ -13,47 +13,6 @@ import (
 	"personaLib/entity"
 )
 
-//	get author response
-type getAuthorResponse struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-//	fetch all authors response
-type getAllAuthorResponse struct {
-	Author []getAuthorResponse `json:"author"`
-}
-
-//	get all authors API
-func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
-
-	//	get all authors from database
-	var authorList []entity.Author
-
-	authorList, err := entity.GetAllAuthor()
-	if err != nil {
-		httpResponse.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//	fill response payload
-	var responseData = getAllAuthorResponse{}
-
-	for _, item := range authorList {
-
-		var authorData = getAuthorResponse{}
-
-		authorData.ID = item.Id
-		authorData.Name = item.Name
-
-		responseData.Author = append(responseData.Author, authorData)
-	}
-
-	httpResponse.Header().Add("Content-Type", "application/json")
-	httpResponse.WriteHeader(http.StatusOK)
-	json.NewEncoder(httpResponse).Encode(responseData)
-}
-
 //	get publisher response
 type getPublisherResponse struct {
 	ID   string `json:"id"`

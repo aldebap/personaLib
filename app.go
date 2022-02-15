@@ -80,9 +80,12 @@ func (a *App) Run(config *Config) {
 	//	start the Web Server
 	a.httpRouter = mux.NewRouter()
 
-	a.httpRouter.HandleFunc("/author", controller.GetAllAuthors).Methods("GET")
-	a.httpRouter.HandleFunc("/publisher", controller.GetAllPublishers).Methods("GET")
-	a.httpRouter.HandleFunc("/book", controller.GetAllBooks).Methods("GET")
+	a.httpRouter.HandleFunc("/author", controller.AddAuthor).Methods(http.MethodPost)
+	a.httpRouter.HandleFunc("/author/{id}", controller.GetAuthor).Methods(http.MethodGet)
+	a.httpRouter.HandleFunc("/author", controller.GetAllAuthors).Methods(http.MethodGet)
+
+	a.httpRouter.HandleFunc("/publisher", controller.GetAllPublishers).Methods(http.MethodGet)
+	a.httpRouter.HandleFunc("/book", controller.GetAllBooks).Methods(http.MethodGet)
 
 	http.Handle("/", a.httpRouter)
 
