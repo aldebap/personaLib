@@ -4,7 +4,7 @@
 //	Author entity
 ////////////////////////////////////////////////////////////////////////////////
 
-package entity
+package store
 
 import (
 	"context"
@@ -39,15 +39,19 @@ func AddAuthor(author Author) (*Author, error) {
 	return &newAuthor, nil
 }
 
-//	get author by ID from database
+//	get author by ID from collection
 func GetAuthorByID(Id string) (*Author, error) {
 
-	//	get a cursor for the query
+	//	find the author by Id
 	var author Author
 
-	id, _ := primitive.ObjectIDFromHex(Id)
+	id, err := primitive.ObjectIDFromHex(Id)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err := authorCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&author)
+	err = authorCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&author)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +59,7 @@ func GetAuthorByID(Id string) (*Author, error) {
 	return &author, nil
 }
 
-//	get all authors from database
+//	get all authors from collection
 func GetAllAuthor() ([]Author, error) {
 
 	//	get a cursor for the query
@@ -75,4 +79,40 @@ func GetAllAuthor() ([]Author, error) {
 	}
 
 	return authorList, nil
+}
+
+//	update author by ID in the collection
+func UpdateAuthor(author Author) error {
+
+	//	update the author in the collection
+	id, err := primitive.ObjectIDFromHex(author.Id)
+	if err != nil {
+		return err
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	_, err = authorCollection.ReplaceOne(ctx, bson.M{"_id": id}, author)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//	delete the author by ID from collection
+func DeleteAuthor(Id string) error {
+
+	//	delete the author by Id
+	id, err := primitive.ObjectIDFromHex(Id)
+	if err != nil {
+		return err
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	_, err = authorCollection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

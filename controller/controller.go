@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"personaLib/entity"
+	"personaLib/store"
 )
 
 //	get publisher response
@@ -28,9 +28,9 @@ type getAllPublisherResponse struct {
 func GetAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all publishers from database
-	var publisherList []entity.Publisher
+	var publisherList []store.Publisher
 
-	publisherList, err := entity.GetAllPublisher()
+	publisherList, err := store.GetAllPublisher()
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
@@ -70,9 +70,9 @@ type getAllBookResponse struct {
 func GetAllBooks(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all books from database
-	var bookList []entity.Book
+	var bookList []store.Book
 
-	bookList, err := entity.GetAllBook()
+	bookList, err := store.GetAllBook()
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return

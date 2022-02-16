@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"personaLib/controller"
-	"personaLib/entity"
+	"personaLib/store"
 )
 
 type Config struct {
@@ -75,7 +75,7 @@ func (a *App) Run(config *Config) {
 	defer a.dbClient.Disconnect(ctx)
 
 	//	initialize entities collections
-	entity.InitCollections(a.dbClient)
+	store.InitCollections(a.dbClient)
 
 	//	start the Web Server
 	a.httpRouter = mux.NewRouter()
@@ -83,6 +83,8 @@ func (a *App) Run(config *Config) {
 	a.httpRouter.HandleFunc("/author", controller.AddAuthor).Methods(http.MethodPost)
 	a.httpRouter.HandleFunc("/author/{id}", controller.GetAuthor).Methods(http.MethodGet)
 	a.httpRouter.HandleFunc("/author", controller.GetAllAuthors).Methods(http.MethodGet)
+	a.httpRouter.HandleFunc("/author/{id}", controller.PatchAuthor).Methods(http.MethodPatch)
+	a.httpRouter.HandleFunc("/author/{id}", controller.DeleteAuthor).Methods(http.MethodDelete)
 
 	a.httpRouter.HandleFunc("/publisher", controller.GetAllPublishers).Methods(http.MethodGet)
 	a.httpRouter.HandleFunc("/book", controller.GetAllBooks).Methods(http.MethodGet)

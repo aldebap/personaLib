@@ -4,7 +4,7 @@
 //	Database collection
 ////////////////////////////////////////////////////////////////////////////////
 
-package entity
+package store
 
 import (
 	"go.mongodb.org/mongo-driver/mongo"

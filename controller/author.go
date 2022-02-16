@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"personaLib/entity"
+	"personaLib/store"
 
 	"github.com/gorilla/mux"
 )
@@ -63,11 +63,11 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	}
 
 	//	add the author to database
-	var newAuthor entity.Author
+	var newAuthor store.Author
 
 	newAuthor.Name = requestData.Name
 
-	insertResult, err := entity.AddAuthor(newAuthor)
+	insertResult, err := store.AddAuthor(newAuthor)
 	if nil != err {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
@@ -90,10 +90,10 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
 
-	//	get all authors from database
-	var author *entity.Author
+	//	get the author by Id from database
+	var author *store.Author
 
-	author, err := entity.GetAuthorByID(vars["id"])
+	author, err := store.GetAuthorByID(vars["id"])
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusNotFound)
 		return
@@ -114,9 +114,9 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all authors from database
-	var authorList []entity.Author
+	var authorList []store.Author
 
-	authorList, err := entity.GetAllAuthor()
+	authorList, err := store.GetAllAuthor()
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
@@ -134,6 +134,67 @@ func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) 
 
 		responseData.Author = append(responseData.Author, authorData)
 	}
+
+	httpResponse.Header().Add("Content-Type", "application/json")
+	httpResponse.WriteHeader(http.StatusOK)
+	json.NewEncoder(httpResponse).Encode(responseData)
+}
+
+//	patch author by Id API
+func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+
+	//	fetch request variables
+	vars := mux.Vars(httpRequest)
+
+	//	fetch request payload
+	var requestData newAuthorRequest
+
+	err := json.NewDecoder(httpRequest.Body).Decode(&requestData)
+	if nil != err {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	//	update the author by Id in the database
+	var author store.Author
+
+	author.Id = vars["id"]
+	author.Name = requestData.Name
+
+	err = store.UpdateAuthor(author)
+	if err != nil {
+		httpResponse.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	//	fill response payload
+	var responseData = authorResponse{}
+
+	responseData.ID = author.Id
+	responseData.Name = author.Name
+
+	httpResponse.Header().Add("Content-Type", "application/json")
+	httpResponse.WriteHeader(http.StatusOK)
+	json.NewEncoder(httpResponse).Encode(responseData)
+}
+
+//	delete author by Id API
+func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+
+	//	fetch request variables
+	vars := mux.Vars(httpRequest)
+
+	//	delete the author by Id from database
+	err := store.DeleteAuthor(vars["id"])
+	if err != nil {
+		httpResponse.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	//	fill response payload
+	var responseData = authorResponse{}
+
+	responseData.ID = vars["id"]
 
 	httpResponse.Header().Add("Content-Type", "application/json")
 	httpResponse.WriteHeader(http.StatusOK)
