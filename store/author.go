@@ -25,6 +25,7 @@ func AddAuthor(author Author) (*Author, error) {
 
 	var newAuthor Author
 
+	newAuthor.Id = primitive.NewObjectID().String()
 	newAuthor.Name = author.Name
 
 	//	add the author to the collection
@@ -34,7 +35,8 @@ func AddAuthor(author Author) (*Author, error) {
 		return nil, err
 	}
 
-	newAuthor.Id = insertResult.InsertedID.(string)
+	_ = insertResult
+	//newAuthor.Id = insertResult.InsertedID.(string)
 
 	return &newAuthor, nil
 }
