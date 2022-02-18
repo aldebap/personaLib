@@ -13,6 +13,7 @@ import (
 	"personaLib/store"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //	new author request
@@ -76,7 +77,7 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = insertResult.Id
+	responseData.ID = insertResult.Id.Hex()
 	responseData.Name = insertResult.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -102,7 +103,7 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = author.Id
+	responseData.ID = author.Id.Hex()
 	responseData.Name = author.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -129,7 +130,7 @@ func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) 
 
 		var authorData = authorResponse{}
 
-		authorData.ID = item.Id
+		authorData.ID = item.Id.Hex()
 		authorData.Name = item.Name
 
 		responseData.Author = append(responseData.Author, authorData)
@@ -158,7 +159,13 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	update the author by Id in the database
 	var author store.Author
 
-	author.Id = vars["id"]
+	//	TODO: better to pass the Id as a string to updateAuthor() function
+	author.Id, err = primitive.ObjectIDFromHex(vars["id"])
+	if err != nil {
+		httpResponse.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	author.Name = requestData.Name
 
 	err = store.UpdateAuthor(author)
@@ -170,7 +177,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = author.Id
+	responseData.ID = author.Id.Hex()
 	responseData.Name = author.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")

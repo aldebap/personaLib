@@ -16,8 +16,8 @@ import (
 
 //	author attributes
 type Author struct {
-	Id   string `bson:"_id,omitempty"`
-	Name string `bson:"name,omitempty"`
+	Id   primitive.ObjectID `bson:"_id,omitempty"`
+	Name string             `bson:"name,omitempty"`
 }
 
 //	add author to collection
@@ -25,18 +25,15 @@ func AddAuthor(author Author) (*Author, error) {
 
 	var newAuthor Author
 
-	newAuthor.Id = primitive.NewObjectID().String()
+	newAuthor.Id = primitive.NewObjectID()
 	newAuthor.Name = author.Name
 
 	//	add the author to the collection
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	insertResult, err := authorCollection.InsertOne(ctx, newAuthor)
+	_, err := authorCollection.InsertOne(ctx, newAuthor)
 	if err != nil {
 		return nil, err
 	}
-
-	_ = insertResult
-	//newAuthor.Id = insertResult.InsertedID.(string)
 
 	return &newAuthor, nil
 }
@@ -87,13 +84,8 @@ func GetAllAuthor() ([]Author, error) {
 func UpdateAuthor(author Author) error {
 
 	//	update the author in the collection
-	id, err := primitive.ObjectIDFromHex(author.Id)
-	if err != nil {
-		return err
-	}
-
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	_, err = authorCollection.ReplaceOne(ctx, bson.M{"_id": id}, author)
+	_, err := authorCollection.ReplaceOne(ctx, bson.M{"_id": author.Id}, author)
 	if err != nil {
 		return err
 	}

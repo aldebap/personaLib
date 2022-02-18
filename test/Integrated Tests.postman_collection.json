@@ -19,6 +19,11 @@
 									"pm.test(\"HTTP retornou 201 Created\", () => {",
 									"    pm.expect( responseCode.code ).to.eql( 201 );",
 									"});",
+									"",
+									"//  Parse the response to get the Id of new author",
+									"var jsonData = JSON.parse( responseBody );",
+									"",
+									"postman.setGlobalVariable( 'author-id', jsonData.id );",
 									""
 								],
 								"type": "text/javascript"
@@ -155,6 +160,117 @@
 						"body": {
 							"mode": "raw",
 							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update an author",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 201 Created\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Jack London\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an author",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 201 Created\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 201 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Jack Kerouac\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
