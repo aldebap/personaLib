@@ -44,13 +44,13 @@ func GetAuthorByID(Id string) (*Author, error) {
 	//	find the author by Id
 	var author Author
 
-	id, err := primitive.ObjectIDFromHex(Id)
+	objectId, err := primitive.ObjectIDFromHex(Id)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = authorCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&author)
+	err = authorCollection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&author)
 	if err != nil {
 		return nil, err
 	}

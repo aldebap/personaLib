@@ -63,6 +63,8 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
+	//	TODO: create a business rule to validate the payload before adding the author to store
+
 	//	add the author to database
 	var newAuthor store.Author
 
@@ -90,6 +92,8 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
+
+	//	TODO: create a business rule to validate the id before query the author from store
 
 	//	get the author by Id from database
 	var author *store.Author
@@ -123,6 +127,8 @@ func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) 
 		return
 	}
 
+	//	TODO: implement pagination
+
 	//	fill response payload
 	var responseData = getAllAuthorResponse{}
 
@@ -147,6 +153,8 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
 
+	//	TODO: create a business rule to validate the id before query the author from store
+
 	//	fetch request payload
 	var requestData newAuthorRequest
 
@@ -155,6 +163,10 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		httpResponse.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	//	TODO: create a business rule to validate the payload before adding the author to store
+
+	//	TODO: if the Id is populated in the payload, it must be equal to the URL parameter
 
 	//	update the author by Id in the database
 	var author store.Author
@@ -190,6 +202,8 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
+
+	//	TODO: create a business rule to validate the id before query the author from store
 
 	//	delete the author by Id from database
 	err := store.DeleteAuthor(vars["id"])

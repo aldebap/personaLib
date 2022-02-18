@@ -107,12 +107,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{app-domain}}/accounts/:id",
+							"raw": "{{app-domain}}/author/:id",
 							"host": [
 								"{{app-domain}}"
 							],
 							"path": [
-								"accounts",
+								"author",
 								":id"
 							],
 							"variable": [
@@ -257,8 +257,6 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"//  set the data for the test",
-									"postman.setGlobalVariable( 'author-name', \"Jack Kerouac\" );",
 									""
 								],
 								"type": "text/javascript"
@@ -270,7 +268,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -278,12 +276,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{app-domain}}/author",
+							"raw": "{{app-domain}}/author/:id",
 							"host": [
 								"{{app-domain}}"
 							],
 							"path": [
-								"author"
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{author-id}}"
+								}
 							]
 						}
 					},
