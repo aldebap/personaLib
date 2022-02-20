@@ -18,9 +18,13 @@ require (
 	golang.org/x/text v0.3.5 // indirect
 )
 
+require personaLib/model v0.0.0-unpublished
+
 require personaLib/store v0.0.0-unpublished
 
 require personaLib/controller v0.0.0-unpublished
+
+replace personaLib/model v0.0.0-unpublished => ./model
 
 replace personaLib/store v0.0.0-unpublished => ./store
 

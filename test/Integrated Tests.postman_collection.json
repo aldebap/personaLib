@@ -317,7 +317,7 @@
 			]
 		},
 		{
-			"name": "Error tests for /account",
+			"name": "Error tests for /author",
 			"item": [
 				{
 					"name": "Invalid content-type",
@@ -518,6 +518,162 @@
 						"body": {
 							"mode": "raw",
 							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<author>\n    <name>{{author-name}}</name>\n</author>\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Empty author's name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Author's name with invalid characters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Joao Jose 'da Silva'\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Author's name bigger that limit Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Joao Jose da Silva de Oliveira Xavier Brandao de Alcantara\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"

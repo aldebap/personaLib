@@ -10,25 +10,27 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"personaLib/model"
 	"personaLib/store"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//	new author request
-type newAuthorRequest struct {
+//	author request
+type authorRequest struct {
+	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`
 }
 
 //	author response
 type authorResponse struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
-//	fetch all authors response
-type getAllAuthorResponse struct {
+//	author's list response
+type authorListResponse struct {
 	Author []authorResponse `json:"author"`
 }
 
@@ -55,7 +57,7 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	}
 
 	//	fetch request payload
-	var requestData newAuthorRequest
+	var requestData authorRequest
 
 	err := json.NewDecoder(httpRequest.Body).Decode(&requestData)
 	if nil != err {
@@ -63,14 +65,14 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
-	//	TODO: create a business rule to validate the payload before adding the author to store
+	author := model.NewAuthor(requestData.Name)
+	if !author.IsValid() {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	//	add the author to database
-	var newAuthor store.Author
-
-	newAuthor.Name = requestData.Name
-
-	insertResult, err := store.AddAuthor(newAuthor)
+	insertedAuthor, err := store.AddAuthor(author)
 	if nil != err {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
@@ -79,8 +81,8 @@ func AddAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = insertResult.Id.Hex()
-	responseData.Name = insertResult.Name
+	responseData.ID = insertedAuthor.Id
+	responseData.Name = insertedAuthor.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
 	httpResponse.WriteHeader(http.StatusCreated)
@@ -130,7 +132,7 @@ func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) 
 	//	TODO: implement pagination
 
 	//	fill response payload
-	var responseData = getAllAuthorResponse{}
+	var responseData = authorListResponse{}
 
 	for _, item := range authorList {
 
@@ -156,7 +158,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	TODO: create a business rule to validate the id before query the author from store
 
 	//	fetch request payload
-	var requestData newAuthorRequest
+	var requestData authorRequest
 
 	err := json.NewDecoder(httpRequest.Body).Decode(&requestData)
 	if nil != err {
@@ -212,6 +214,7 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
+	//	TODO: no responses for delete success
 	//	fill response payload
 	var responseData = authorResponse{}
 

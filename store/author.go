@@ -10,6 +10,8 @@ import (
 	"context"
 	"time"
 
+	"personaLib/model"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -21,7 +23,7 @@ type Author struct {
 }
 
 //	add author to collection
-func AddAuthor(author Author) (*Author, error) {
+func AddAuthor(author *model.Author) (*model.Author, error) {
 
 	var newAuthor Author
 
@@ -35,7 +37,9 @@ func AddAuthor(author Author) (*Author, error) {
 		return nil, err
 	}
 
-	return &newAuthor, nil
+	author.Id = newAuthor.Id.Hex()
+
+	return author, nil
 }
 
 //	get author by ID from collection
