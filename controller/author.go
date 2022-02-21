@@ -94,13 +94,14 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
+	id := vars["id"]
 
 	//	TODO: create a business rule to validate the id before query the author from store
 
 	//	get the author by Id from database
-	var author *store.Author
+	var author *model.Author
 
-	author, err := store.GetAuthorByID(vars["id"])
+	author, err := store.GetAuthorByID(id)
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusNotFound)
 		return
@@ -109,7 +110,7 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = author.Id.Hex()
+	responseData.ID = author.Id
 	responseData.Name = author.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -121,7 +122,7 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	get all authors from database
-	var authorList []store.Author
+	var authorList []model.Author
 
 	authorList, err := store.GetAllAuthor()
 	if err != nil {
@@ -136,12 +137,12 @@ func GetAllAuthors(httpResponse http.ResponseWriter, httpRequest *http.Request) 
 
 	for _, item := range authorList {
 
-		var authorData = authorResponse{}
+		var author = authorResponse{}
 
-		authorData.ID = item.Id.Hex()
-		authorData.Name = item.Name
+		author.ID = item.Id
+		author.Name = item.Name
 
-		responseData.Author = append(responseData.Author, authorData)
+		responseData.Author = append(responseData.Author, author)
 	}
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -154,6 +155,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
+	id := vars["id"]
 
 	//	TODO: create a business rule to validate the id before query the author from store
 
@@ -174,7 +176,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	var author store.Author
 
 	//	TODO: better to pass the Id as a string to updateAuthor() function
-	author.Id, err = primitive.ObjectIDFromHex(vars["id"])
+	author.Id, err = primitive.ObjectIDFromHex(id)
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusInternalServerError)
 		return
@@ -204,11 +206,12 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
+	id := vars["id"]
 
 	//	TODO: create a business rule to validate the id before query the author from store
 
 	//	delete the author by Id from database
-	err := store.DeleteAuthor(vars["id"])
+	err := store.DeleteAuthor(id)
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusNotFound)
 		return

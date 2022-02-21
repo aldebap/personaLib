@@ -20,9 +20,9 @@ type Author struct {
 	Name string
 }
 
+//	compile the validation regexp
 func init() {
-	//	TODO: add portuguese accent chars to regexp
-	authorsValidCharacters = regexp.MustCompile("^[a-zA-Z 0-9.]+$")
+	authorsValidCharacters = regexp.MustCompile("^[a-zA-ZàáãéêíóôúüçÀÁÃÉÊÍÓÔÚÜÇ 0-9.]{1,50}$")
 }
 
 //	create a new Author
@@ -36,10 +36,6 @@ func NewAuthor(name string) *Author {
 func (author *Author) IsValid() bool {
 	//	name field validation
 	if len(author.Name) == 0 {
-		return false
-	}
-	//	TODO: move the max size to the regexp
-	if len(author.Name) > 50 {
 		return false
 	}
 	if !authorsValidCharacters.MatchString(author.Name) {

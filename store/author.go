@@ -22,6 +22,14 @@ type Author struct {
 	Name string             `bson:"name,omitempty"`
 }
 
+//	create a new model Author from store document author
+func FromDocument(author Author) *model.Author {
+	return &model.Author{
+		Id:   author.Id.Hex(),
+		Name: author.Name,
+	}
+}
+
 //	add author to collection
 func AddAuthor(author *model.Author) (*model.Author, error) {
 
@@ -37,21 +45,19 @@ func AddAuthor(author *model.Author) (*model.Author, error) {
 		return nil, err
 	}
 
-	author.Id = newAuthor.Id.Hex()
-
-	return author, nil
+	return FromDocument(newAuthor), nil
 }
 
 //	get author by ID from collection
-func GetAuthorByID(Id string) (*Author, error) {
-
-	//	find the author by Id
-	var author Author
+func GetAuthorByID(Id string) (*model.Author, error) {
 
 	objectId, err := primitive.ObjectIDFromHex(Id)
 	if err != nil {
 		return nil, err
 	}
+
+	//	find the author by Id
+	var author Author
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err = authorCollection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&author)
@@ -59,11 +65,11 @@ func GetAuthorByID(Id string) (*Author, error) {
 		return nil, err
 	}
 
-	return &author, nil
+	return FromDocument(author), nil
 }
 
 //	get all authors from collection
-func GetAllAuthor() ([]Author, error) {
+func GetAllAuthor() ([]model.Author, error) {
 
 	//	get a cursor for the query
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -75,13 +81,18 @@ func GetAllAuthor() ([]Author, error) {
 
 	//	fetch data from cursor
 	var authorList []Author
+	var resultAuthorList []model.Author
 
 	err = cursor.All(ctx, &authorList)
 	if err != nil {
 		return nil, err
 	}
 
-	return authorList, nil
+	for _, item := range authorList {
+		resultAuthorList = append(resultAuthorList, *FromDocument(item))
+	}
+
+	return resultAuthorList, nil
 }
 
 //	update author by ID in the collection
