@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,9 +20,16 @@ func main() {
 	//	splash screen
 	fmt.Printf(">>> personaLib Server\n\n")
 
-	//	start personLib application
-	var config = GetFromEnv()
-	var personaLibApp App
+	//	get configuration from environment
+	config, err := GetFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	personaLibApp.Run(config)
+	//	start personLib application
+	personaLibApp := App{
+		config: config,
+	}
+
+	personaLibApp.Run()
 }

@@ -35,12 +35,13 @@ type App struct {
 }
 
 //	load the App configuration from environment variables
-func GetFromEnv() *Config {
+func GetFromEnv() (*Config, error) {
 
 	//	get configuration parameters from environment
 	databaseURL := os.Getenv("DATABASEURL")
 	servicePort := os.Getenv("SERVICEPORT")
 
+	//	TODO: validate all required variables
 	if len(servicePort) == 0 {
 		servicePort = ":8080"
 	} else if servicePort[0] != ':' {
@@ -51,14 +52,11 @@ func GetFromEnv() *Config {
 		databaseURL: databaseURL,
 		timeout:     10 * time.Second,
 		servicePort: servicePort,
-	}
+	}, nil
 }
 
 //	run the application
-func (a *App) Run(config *Config) {
-
-	a.config = config
-
+func (a *App) Run() {
 	//	connect to the database
 	var err error
 

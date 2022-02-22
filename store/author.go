@@ -96,11 +96,21 @@ func GetAllAuthor() ([]model.Author, error) {
 }
 
 //	update author by ID in the collection
-func UpdateAuthor(author Author) error {
+func UpdateAuthor(Id string, author *model.Author) error {
+
+	objectId, err := primitive.ObjectIDFromHex(Id)
+	if err != nil {
+		return err
+	}
+
+	var replaceAuthor Author
+
+	replaceAuthor.Id = objectId
+	replaceAuthor.Name = author.Name
 
 	//	update the author in the collection
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	_, err := authorCollection.ReplaceOne(ctx, bson.M{"_id": author.Id}, author)
+	_, err = authorCollection.ReplaceOne(ctx, bson.M{"_id": objectId}, replaceAuthor)
 	if err != nil {
 		return err
 	}

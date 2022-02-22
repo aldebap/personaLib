@@ -186,7 +186,7 @@
 							"script": {
 								"exec": [
 									"//  check the HTTP return code",
-									"pm.test(\"HTTP retornou 201 Created\", () => {",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
 									"    pm.expect( responseCode.code ).to.eql( 200 );",
 									"});",
 									""
@@ -245,8 +245,8 @@
 							"script": {
 								"exec": [
 									"//  check the HTTP return code",
-									"pm.test(\"HTTP retornou 201 Created\", () => {",
-									"    pm.expect( responseCode.code ).to.eql( 201 );",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
 									"});",
 									""
 								],
@@ -589,6 +589,58 @@
 					"response": []
 				},
 				{
+					"name": "Author's name bigger that limit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Joao Jose da Silva de Oliveira Xavier Brandao de Alcantara\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Author's name with invalid characters",
 					"event": [
 						{
@@ -641,7 +693,7 @@
 					"response": []
 				},
 				{
-					"name": "Author's name bigger that limit Copy",
+					"name": "Update an author with id parameter different from the id on payload",
 					"event": [
 						{
 							"listen": "test",
@@ -661,7 +713,10 @@
 							"script": {
 								"exec": [
 									"//  set the data for the test",
-									"postman.setGlobalVariable( 'author-name', \"Joao Jose da Silva de Oliveira Xavier Brandao de Alcantara\" );",
+									"postman.setGlobalVariable( 'author-id', \"62144f358480935f4e1400f0\" );",
+									"postman.setGlobalVariable( 'author-name', \"Jack London\" );",
+									"",
+									"postman.setGlobalVariable( 'wrong-author-id', \"626262626262626262626262\" );",
 									""
 								],
 								"type": "text/javascript"
@@ -669,11 +724,11 @@
 						}
 					],
 					"request": {
-						"method": "POST",
+						"method": "PATCH",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"raw": "{\n    \"id\": \"{{wrong-author-id}}\",\n    \"name\": \"{{author-name}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -681,12 +736,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{app-domain}}/author",
+							"raw": "{{app-domain}}/author/:id",
 							"host": [
 								"{{app-domain}}"
 							],
 							"path": [
-								"author"
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{author-id}}"
+								}
 							]
 						}
 					},

@@ -14,7 +14,6 @@ import (
 	"personaLib/store"
 
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //	author request
@@ -168,23 +167,19 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
-	//	TODO: create a business rule to validate the payload before adding the author to store
-
-	//	TODO: if the Id is populated in the payload, it must be equal to the URL parameter
-
-	//	update the author by Id in the database
-	var author store.Author
-
-	//	TODO: better to pass the Id as a string to updateAuthor() function
-	author.Id, err = primitive.ObjectIDFromHex(id)
-	if err != nil {
-		httpResponse.WriteHeader(http.StatusInternalServerError)
+	if len(requestData.ID) > 0 && requestData.ID != id {
+		httpResponse.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	author.Name = requestData.Name
+	author := model.NewAuthor(requestData.Name)
+	if !author.IsValid() {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	err = store.UpdateAuthor(author)
+	//	update the author by Id in the database
+	err = store.UpdateAuthor(id, author)
 	if err != nil {
 		httpResponse.WriteHeader(http.StatusNotFound)
 		return
@@ -193,7 +188,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = author.Id.Hex()
+	responseData.ID = id
 	responseData.Name = author.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -217,13 +212,7 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
-	//	TODO: no responses for delete success
 	//	fill response payload
-	var responseData = authorResponse{}
-
-	responseData.ID = vars["id"]
-
 	httpResponse.Header().Add("Content-Type", "application/json")
 	httpResponse.WriteHeader(http.StatusOK)
-	json.NewEncoder(httpResponse).Encode(responseData)
 }
