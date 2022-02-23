@@ -49,9 +49,9 @@ func AddAuthor(author *model.Author) (*model.Author, error) {
 }
 
 //	get author by ID from collection
-func GetAuthorByID(Id string) (*model.Author, error) {
+func GetAuthorByID(Id *model.ID) (*model.Author, error) {
 
-	objectId, err := primitive.ObjectIDFromHex(Id)
+	objectId, err := primitive.ObjectIDFromHex(string(*Id))
 	if err != nil {
 		return nil, err
 	}
@@ -96,9 +96,9 @@ func GetAllAuthor() ([]model.Author, error) {
 }
 
 //	update author by ID in the collection
-func UpdateAuthor(Id string, author *model.Author) error {
+func UpdateAuthor(Id *model.ID, author *model.Author) error {
 
-	objectId, err := primitive.ObjectIDFromHex(Id)
+	objectId, err := primitive.ObjectIDFromHex(string(*Id))
 	if err != nil {
 		return err
 	}
@@ -119,10 +119,10 @@ func UpdateAuthor(Id string, author *model.Author) error {
 }
 
 //	delete the author by ID from collection
-func DeleteAuthor(Id string) error {
+func DeleteAuthor(Id *model.ID) error {
 
 	//	delete the author by Id
-	id, err := primitive.ObjectIDFromHex(Id)
+	id, err := primitive.ObjectIDFromHex(string(*Id))
 	if err != nil {
 		return err
 	}

@@ -93,9 +93,12 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := vars["id"]
+	id := model.FromString(vars["id"])
 
-	//	TODO: create a business rule to validate the id before query the author from store
+	if !id.IsValid() {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	//	get the author by Id from database
 	var author *model.Author
@@ -154,9 +157,12 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := vars["id"]
+	id := model.FromString(vars["id"])
 
-	//	TODO: create a business rule to validate the id before query the author from store
+	if !id.IsValid() {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	//	fetch request payload
 	var requestData authorRequest
@@ -167,7 +173,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		return
 	}
 
-	if len(requestData.ID) > 0 && requestData.ID != id {
+	if len(requestData.ID) > 0 && requestData.ID != string(*id) {
 		httpResponse.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -188,7 +194,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	var responseData = authorResponse{}
 
-	responseData.ID = id
+	responseData.ID = string(*id)
 	responseData.Name = author.Name
 
 	httpResponse.Header().Add("Content-Type", "application/json")
@@ -201,9 +207,12 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := vars["id"]
+	id := model.FromString(vars["id"])
 
-	//	TODO: create a business rule to validate the id before query the author from store
+	if !id.IsValid() {
+		httpResponse.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	//	delete the author by Id from database
 	err := store.DeleteAuthor(id)

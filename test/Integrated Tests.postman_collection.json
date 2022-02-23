@@ -693,6 +693,252 @@
 					"response": []
 				},
 				{
+					"name": "Get an account by invalid ID size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'wrong-author-id', \"6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get an account by invalid ID content",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'wrong-author-id', \"az6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update an author with invalid ID size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Jack London\" );",
+									"",
+									"postman.setGlobalVariable( 'wrong-author-id', \"6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update an author with invalid ID content",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'author-name', \"Jack London\" );",
+									"",
+									"postman.setGlobalVariable( 'wrong-author-id', \"az6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{author-name}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update an author with id parameter different from the id on payload",
 					"event": [
 						{
@@ -748,6 +994,124 @@
 								{
 									"key": "id",
 									"value": "{{author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an author with invalid ID size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'wrong-author-id', \"6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an author with invalid ID content",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'wrong-author-id', \"az6262626262626262626262\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/author/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"author",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{wrong-author-id}}"
 								}
 							]
 						}
