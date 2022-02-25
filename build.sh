@@ -1,20 +1,61 @@
 #!	/usr/bin/ksh
 
-#	set environment
-export  GOROOT=${GOROOT:=/usr/local/go}
-export	PATH=${PATH}:$( go env GOPATH )/bin
+#	color constants
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+LIGHTGRAY='\033[0;37m'
+NOCOLOR='\033[0m'
 
-export  PROJECT_NAME='shoppingCart'
-export  PROJECT_PATH=$( pwd )
-export	PROJECT_DEPENDENCIES='github.com/gorilla/mux
-	google.golang.org/protobuf
-	google.golang.org/grpc
-	google.golang.org/grpc/codes
-	google.golang.org/grpc/status'
-export	PROJECT_SOURCE='app.go main.go'
-export	PROJECT_PACKAGES='checkout discount product'
-export	PROJECT_TARGET='bin/shoppingCart'
-export  GOPATH="${GOPATH:=PROJECT_PATH}"
+#	set environment
+export  PROJECT_CONFIG_FILE='build.cfg'
+export  TARGETDIR='bin'
+
+#	TODO: create an option to set the target dir
+
+#   check if go toolchain is available
+if [ -z "${GOROOT}" ]
+then
+    exit "error: GOROOT environment variable must be set"
+fi
+
+OUTPUT=$( which go 2> /dev/null )
+if [ $? -ne 0 ]
+then
+    exit "error: 'go' compiler is required to run this script"
+fi
+
+#   check if jq is available
+OUTPUT=$( which jq 2> /dev/null )
+if [ $? -ne 0 ]
+then
+    exit "error: 'jq' is required to run this script"
+fi
+
+#	check if config file exists
+if [ ! -f ${PROJECT_CONFIG_FILE} ]
+then
+    exit "error: build configration file not found: ${PROJECT_CONFIG_FILE}"
+fi
+
+#	load configuration from config file
+export	PROJECT_CONFIG="$( cat ${PROJECT_CONFIG_FILE} )"
+export  PROJECT_NAME="$( echo ${PROJECT_CONFIG} | jq '.project' | tr -d '"' )"
+export  PROJECT_DESCRIPTION="$( echo ${PROJECT_CONFIG} | jq '.description' | tr -d '"' )"
+export  PROJECT_SOURCEDIR="$( echo ${PROJECT_CONFIG} | jq '.source_directory' | tr -d '"' )"
+export  PROJECT_SOURCE="$( echo ${PROJECT_CONFIG} | jq '.source | .[]' | tr -d '"' )"
+export  PROJECT_PACKAGES="$( echo ${PROJECT_CONFIG} | jq '.packages | .[]' | tr -d '"' )"
+export	PROJECT_TARGET="$( echo ${PROJECT_CONFIG} | jq '.target' | tr -d '"' )"
+export  PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
+
+#	TODO: validate the values from config file
+
+#	TODO: set default values for optional config variables
+
+#	if necessary, create target directory
+if [ ! -d "${TARGETDIR}" ]
+then
+	mkdir "${TARGETDIR}"
+fi
 
 #	if necessary, set default target
 export	TARGET_LIST="$*"
@@ -24,6 +65,7 @@ then
 	export	TARGET_LIST='compile'
 fi
 
+#	TODO: create a better CLI option parser
 if [ "${TARGET_LIST}" == 'all' ]
 then
 	export	TARGET_LIST='dependencies compile test package verify'
@@ -53,33 +95,36 @@ do
 
 	#	remove all required packages and the target file
 		clean )
-		echo '+++ removing required packages and the target file'
+		echo -e "[build] ${GREEN}removing required packages and the target file${NOCOLOR}"
 
-		rm -rf pkg/*
-		rm -rf src/go.mod src/go.sum
+		#rm -rf pkg/*
+		#	TODO: is it possible to remove a package installed in GOPATH dir ?
+		echo rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum"
 
-		for PACKAGE in ${PROJECT_PACKAGES}
+		for PACKAGE in "${PROJECT_PACKAGES}"
 		do
-			rm -rf src/${PACKAGE}/go.mod src/${PACKAGE}/go.sum
+			echo cd "${PACKAGE}"
+			echo rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum"
 		done
 
-		rm -f ${PROJECT_TARGET}
+		echo rm -f "${TARGETDIR}/${PROJECT_TARGET}"
 		;;
 
 	#	install all dependencies
 		dependencies )
 		echo '+++ downloading and installing all dependencies'
 
+		#	TODO: adjust the target
 		#	main packge dependencies
 		cd src
 		go mod init aldebap/${PROJECT_NAME}
 
-		for MODULE in ${PROJECT_DEPENDENCIES}
+		for MODULE in "${PROJECT_DEPENDENCIES}"
 		do
 			go get -u ${MODULE}
 		done
 
-		for PACKAGE in ${PROJECT_PACKAGES}
+		for PACKAGE in "${PROJECT_PACKAGES}"
 		do
 			echo "require ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished" >> go.mod
 			echo "replace ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished => ../src/${PACKAGE}" >> go.mod
@@ -99,54 +144,62 @@ do
 
 	#	compile and link source code
 		compile )
-		echo '+++ compiling and linking source code'
+		echo -e "[build] ${GREEN}compiling and linking source code${NOCOLOR}"
 
-		rm -f ${PROJECT_TARGET}
+		rm -f "${TARGETDIR}/${PROJECT_TARGET}"
 
-		if [ ! -d $( dirname ${PROJECT_TARGET} ) ]
+		BUILD_DIR="$( pwd )"
+		if [ ! -z "${PROJECT_SOURCEDIR}" -a "${PROJECT_SOURCEDIR}" != '.' ]
 		then
-			mkdir $( dirname ${PROJECT_TARGET} )
+			cd "${PROJECT_SOURCEDIR}"
 		fi
-
-		cd src
-		go build -o ../${PROJECT_TARGET} ${PROJECT_SOURCE}
-		cd ..
+		go build -o "${BUILD_DIR}/${TARGETDIR}/${PROJECT_TARGET}" ${PROJECT_SOURCE}
+		cd "${BUILD_DIR}"
 		;;
 
 	#	execute unit tests
 		test )
-		echo '+++ running unit tests'
+		echo -e "[build] ${GREEN}running unit tests${NOCOLOR}"
 
 		export	TEST_RESULT=0
 
-		cd src
-		go test -v
+		BUILD_DIR="$( pwd )"
+		if [ ! -z "${PROJECT_SOURCEDIR}" -a "${PROJECT_SOURCEDIR}" != '.' ]
+		then
+			cd "${PROJECT_SOURCEDIR}"
+		fi
+
+		#	TODO: the verbose for the unit tests should be a CLI option
+		go test -v .
 		if [ $? -ne 0 ]
 		then
 			export	TEST_RESULT=-1
 		fi
-		cd ..
 
-		for PACKAGE in ${PROJECT_PACKAGES}
+		for PACKAGE in "${PROJECT_PACKAGES}"
 		do
-			cd src/${PACKAGE}
-			go test -v
+			echo cd "${PACKAGE}"
+			cd "${PACKAGE}"
+			go test -v .
 			if [ $? -ne 0 ]
 			then
 				export	TEST_RESULT=-1
 			fi
-			cd ../..
+			cd ..
 		done
 
 		if [ ${TEST_RESULT} -ne 0 ]
 		then
 			exit ${TEST_RESULT}
 		fi
+
+		cd "${BUILD_DIR}"
 		;;
 
 	#	package the target in a Docker image
 		package )
 		echo '+++ package the target in a Docker image'
+		#	TODO: adjust the target
 		docker build --tag shopping-cart .
 		;;
 
@@ -154,6 +207,7 @@ do
 		verify )
 		echo '+++ execute integration tests'
 
+		#	TODO: adjust the target
 		docker-compose up -d
 		newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
 		docker-compose stop
@@ -163,6 +217,7 @@ do
 		run )
 		echo '+++ run the target'
 
+		#	TODO: adjust the target
 		docker-compose up
 		;;
 
