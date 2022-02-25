@@ -93,7 +93,7 @@ func GetAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := model.FromString(vars["id"])
+	id := model.NewID(vars["id"])
 
 	if !id.IsValid() {
 		httpResponse.WriteHeader(http.StatusBadRequest)
@@ -157,7 +157,7 @@ func PatchAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := model.FromString(vars["id"])
+	id := model.NewID(vars["id"])
 
 	if !id.IsValid() {
 		httpResponse.WriteHeader(http.StatusBadRequest)
@@ -207,7 +207,7 @@ func DeleteAuthor(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 
 	//	fetch request variables
 	vars := mux.Vars(httpRequest)
-	id := model.FromString(vars["id"])
+	id := model.NewID(vars["id"])
 
 	if !id.IsValid() {
 		httpResponse.WriteHeader(http.StatusBadRequest)

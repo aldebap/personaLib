@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //	id.go  -  Feb/20/2022  -  aldebap
 //
-//	Entity ID
+//	Object ID
 ////////////////////////////////////////////////////////////////////////////////
 
 package model
@@ -21,13 +21,13 @@ func init() {
 }
 
 //	create a new model ID from string
-func FromString(id string) *ID {
+func NewID(id string) *ID {
 	var newId ID = ID(id)
 
 	return &newId
 }
 
-//	validate entity ID
+//	validate object ID
 func (id *ID) IsValid() bool {
 	return idValidCharacters.MatchString(string(*id))
 }

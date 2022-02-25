@@ -97,17 +97,17 @@ do
 		clean )
 		echo -e "[build] ${GREEN}removing required packages and the target file${NOCOLOR}"
 
-		#rm -rf pkg/*
 		#	TODO: is it possible to remove a package installed in GOPATH dir ?
-		echo rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum"
+		#rm -rf pkg/*
+		echo -e '[debug]' ${LIGHTGRAY} rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum" ${NOCOLOR}
 
-		for PACKAGE in "${PROJECT_PACKAGES}"
+		for PACKAGE in ${PROJECT_PACKAGES}
 		do
-			echo cd "${PACKAGE}"
-			echo rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum"
+			echo -e cd "${PACKAGE}"
+			echo -e rm -rf "${PROJECT_SOURCEDIR}/go.mod" "${PROJECT_SOURCEDIR}/go.sum"
 		done
 
-		echo rm -f "${TARGETDIR}/${PROJECT_TARGET}"
+		echo -e rm -f "${TARGETDIR}/${PROJECT_TARGET}"
 		;;
 
 	#	install all dependencies
@@ -176,7 +176,7 @@ do
 			export	TEST_RESULT=-1
 		fi
 
-		for PACKAGE in "${PROJECT_PACKAGES}"
+		for PACKAGE in ${PROJECT_PACKAGES}
 		do
 			echo cd "${PACKAGE}"
 			cd "${PACKAGE}"
