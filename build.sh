@@ -22,6 +22,8 @@ function checkRequiredTools {
 
 	local	TMP_OUTPUT=''
 
+	#	TODO: adjust the error messages
+
 	#	if go toolchain is available
 	if [ -z "${GOROOT}" ]
 	then
@@ -55,56 +57,76 @@ function loadProjectConfig {
 	export	PROJECT_TARGET="$( echo ${PROJECT_CONFIG} | jq '.target' | tr -d '"' )"
 	export	PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
 
-	#	TODO: validate the values from config file
 	#	TODO: set default values for optional config variables
+	#	TODO: validate the values from config file
 	#	TODO: change the config file to allow specify custom golang compilation options
 	#	TODO: change the config file to allow specify the version of dependency packages
+
+	#	set default values for missing parameters
+	if [ -z "${PROJECT_SOURCE_DIR}" ]
+	then
+		PROJECT_SOURCE_DIR='.'
+	fi
+
+	#	validate source directory
+	if [ ! -d "${PROJECT_SOURCE_DIR}" ]
+	then
+		echo -e "[build] ${RED}error: invalid source directory: ${PROJECT_SOURCE_DIR}${NOCOLOR}"
+		exit 1
+	fi
 }
 
 #	function to execute the "clean" target action
 function cleanTarget {
 
-	#	TODO: is it possible to remove a package installed in GOPATH dir ?
+	echo -e "[build] ${TARGET}: ${GREEN}removing required packages and the target file${NOCOLOR}"
+
+	#	TODO: check if it's possible to remove a package installed in GOPATH dir
 	#rm -rf pkg/*
-	echo -e '[debug]' ${LIGHTGRAY} rm -rf "${PROJECT_SOURCE_DIR}/go.mod" "${PROJECT_SOURCE_DIR}/go.sum" ${NOCOLOR}
+
+	#	remove all go module files
+	rm -rf "${PROJECT_SOURCE_DIR}/go.mod" "${PROJECT_SOURCE_DIR}/go.sum"
 
 	for PACKAGE in ${PROJECT_PACKAGES}
 	do
-		echo -e cd "${PACKAGE}"
-		echo -e rm -rf "${PROJECT_SOURCE_DIR}/go.mod" "${PROJECT_SOURCE_DIR}/go.sum"
+		rm -rf "${PROJECT_SOURCE_DIR}/${PACKAGE}/go.mod" "${PROJECT_SOURCE_DIR}/${PACKAGE}/go.sum"
 	done
 
-	echo -e rm -f "${TARGET_DIR}/${PROJECT_TARGET}"
+	#	remove project target
+	rm -f "${TARGET_DIR}/${PROJECT_TARGET}"
 }
 
 #	function to execute the "dependencies" target action
 function dependenciesTarget {
 
-	#	TODO: adjust the target
-	#	main packge dependencies
-	cd src
-	go mod init aldebap/${PROJECT_NAME}
+	local	BUILD_DIR="$( pwd )"
 
-	for MODULE in "${PROJECT_DEPENDENCIES}"
+	echo -e "[build] ${TARGET}: ${GREEN}downloading and installing all dependencies${NOCOLOR}"
+
+	#	generate main packge go module files
+	cd "${PROJECT_SOURCE_DIR}"
+	go mod init ${PROJECT_NAME}
+
+	for MODULE in ${PROJECT_DEPENDENCIES}
 	do
 		go get -u ${MODULE}
 	done
 
-	for PACKAGE in "${PROJECT_PACKAGES}"
+	for PACKAGE in ${PROJECT_PACKAGES}
 	do
 		echo "require ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished" >> go.mod
-		echo "replace ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished => ../src/${PACKAGE}" >> go.mod
+		echo "replace ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished => ./${PACKAGE}" >> go.mod
 		#echo go mod edit -replace ${PROJECT_NAME}/${PACKAGE}=../src/${PACKAGE}
 	done
 
-	cd ..
+	cd "${BUILD_DIR}"
 
 	#	create project packages module files
 	for PACKAGE in ${PROJECT_PACKAGES}
 	do
-		cd src/${PACKAGE}
+		cd "${PROJECT_SOURCE_DIR}/${PACKAGE}"
 		go mod init ${PROJECT_NAME}/${PACKAGE}
-		cd ../..
+		cd "${BUILD_DIR}"
 	done
 }
 
@@ -113,12 +135,12 @@ function compileTarget {
 
 	local	BUILD_DIR="$( pwd )"
 
+	echo -e "[build] ${TARGET}: ${GREEN}compiling and linking source code${NOCOLOR}"
+
 	rm -f "${TARGET_DIR}/${PROJECT_TARGET}"
 
-	if [ ! -z "${PROJECT_SOURCE_DIR}" -a "${PROJECT_SOURCE_DIR}" != '.' ]
-	then
-		cd "${PROJECT_SOURCE_DIR}"
-	fi
+	#	TODO: test if it works when the source dir is different than "."
+	cd "${PROJECT_SOURCE_DIR}"
 	go build -o "${BUILD_DIR}/${TARGET_DIR}/${PROJECT_TARGET}" ${PROJECT_SOURCE}
 	cd "${BUILD_DIR}"
 }
@@ -130,29 +152,28 @@ function testTarget {
 	local	GOTEST_FLAGS=''
 	local	GOTEST_PACKAGES='.'
 
-	if [ ! -z "${PROJECT_SOURCE_DIR}" -a "${PROJECT_SOURCE_DIR}" != '.' ]
-	then
-		cd "${PROJECT_SOURCE_DIR}"
-	fi
+	echo -e "[build] ${TARGET}: ${GREEN}running unit tests${NOCOLOR}"
 
 	if [ "${VERBOSE}" == 'true' ]
 	then
 		GOTEST_FLAGS='-v'
 	fi
 
+	#	create a list of all packages to run tests
 	for PACKAGE in ${PROJECT_PACKAGES}
 	do
 		GOTEST_PACKAGES="${GOTEST_PACKAGES} ${PROJECT_NAME}/${PACKAGE}"
 	done
 
+	cd "${PROJECT_SOURCE_DIR}"
 	go test "${GOTEST_FLAGS}" ${GOTEST_PACKAGES}
+	cd "${BUILD_DIR}"
+
 	if [ $? -ne 0 ]
 	then
 		echo -e "[build] ${RED}unit tests failed${NOCOLOR}"
 		exit ${TEST_RESULT}
 	fi
-
-	cd "${BUILD_DIR}"
 }
 
 #	function to execute the "package" target action
@@ -280,29 +301,21 @@ do
 
 		#	remove all required packages and the target file
 		clean )
-		echo -e "[build] ${TARGET}: ${GREEN}removing required packages and the target file${NOCOLOR}"
-
 		cleanTarget
 		;;
 
 		#	install all dependencies
 		dependencies )
-		echo -e "[build] ${TARGET}: ${GREEN}downloading and installing all dependencies${NOCOLOR}"
-
 		dependenciesTarget
 		;;
 
 		#	compile and link source code
 		compile )
-		echo -e "[build] ${TARGET}: ${GREEN}compiling and linking source code${NOCOLOR}"
-
 		compileTarget
 		;;
 
 		#	execute unit tests
 		test )
-		echo -e "[build] ${TARGET}: ${GREEN}running unit tests${NOCOLOR}"
-
 		testTarget
 		;;
 
