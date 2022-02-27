@@ -127,8 +127,8 @@ function compileTarget {
 function testTarget {
 
 	local	BUILD_DIR="$( pwd )"
-	local	TEST_RESULT=0
 	local	GOTEST_FLAGS=''
+	local	GOTEST_PACKAGES='.'
 
 	if [ ! -z "${PROJECT_SOURCE_DIR}" -a "${PROJECT_SOURCE_DIR}" != '.' ]
 	then
@@ -140,25 +140,13 @@ function testTarget {
 		GOTEST_FLAGS='-v'
 	fi
 
-	go test "${GOTEST_FLAGS}" .
-	if [ $? -ne 0 ]
-	then
-		export	TEST_RESULT=1
-	fi
-
 	for PACKAGE in ${PROJECT_PACKAGES}
 	do
-		echo cd "${PACKAGE}"
-		cd "${PACKAGE}"
-		go test "${GOTEST_FLAGS}" .
-		if [ $? -ne 0 ]
-		then
-			export	TEST_RESULT=1
-		fi
-		cd ..
+		GOTEST_PACKAGES="${GOTEST_PACKAGES} ${PROJECT_NAME}/${PACKAGE}"
 	done
 
-	if [ ${TEST_RESULT} -ne 0 ]
+	go test "${GOTEST_FLAGS}" ${GOTEST_PACKAGES}
+	if [ $? -ne 0 ]
 	then
 		echo -e "[build] ${RED}unit tests failed${NOCOLOR}"
 		exit ${TEST_RESULT}
@@ -242,7 +230,6 @@ HELP_MESSAGE
 	#	verbose option
 		--verbose )
 		VERBOSE='true'
-		shift
 		;;
 
 	#	if it's not an option, it's a target
