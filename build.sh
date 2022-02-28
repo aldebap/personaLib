@@ -17,31 +17,40 @@ export	TARGET_DIR='bin'
 export	VERBOSE='false'
 export	TARGET_LIST=''
 
-#	function to check if the required tools are available
-function checkRequiredTools {
+#	function to check if the basic required tools are available
+function checkBasicRequiredTools {
 
 	local	TMP_OUTPUT=''
-
-	#	TODO: adjust the error messages
 
 	#	if go toolchain is available
 	if [ -z "${GOROOT}" ]
 	then
-		"error: GOROOT environment variable must be set"
+		echo -e "[build] ${RED}error: GOROOT environment variable must be set${NOCOLOR}"
+		exit 1
 	fi
 
 	TMP_OUTPUT=$( which go 2> /dev/null )
 	if [ $? -ne 0 ]
 	then
-		exit "error: 'go' compiler is required to run this script"
+		echo -e "[build] ${RED}error: golang compiler is required to run this script${NOCOLOR}"
+		exit 1
 	fi
 
 	#	 if jq is available
 	OUTPUT=$( which jq 2> /dev/null )
 	if [ $? -ne 0 ]
 	then
-		exit "error: 'jq' is required to run this script"
+		echo -e "[build] ${RED}error: 'jq' utility is required to run this script${NOCOLOR}"
+		exit 1
 	fi
+}
+
+#	function to check if the additional required tools are available
+function checkAdditionalRequiredTools {
+
+	local	TMP_OUTPUT=''
+
+	#	TODO: based on the configuration, check for availability of: newman, docker, docker-compose, ...
 }
 
 #	function to load project configuration from config file
@@ -57,7 +66,35 @@ function loadProjectConfig {
 	export	PROJECT_TARGET="$( echo ${PROJECT_CONFIG} | jq '.target' | tr -d '"' )"
 	export	PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
 
-	#	TODO: set default values for optional config variables
+	#	TODO: create a variable with the test directory (in config file + test as default)
+	#	TODO: to create an entry for newman, should check the tool to format the command
+	#	load the integrated tests configuration
+	export	PROJECT_INTEGRATION_TESTS=''
+	local	NUM_INTEGRATION_TESTS=$( echo ${PROJECT_CONFIG} | jq '.integration_tests | length' )
+	local	INDEX=0
+	local	TEST_DESCRIPTION=''
+	local	TEST_TOOL=''
+	local	TEST_ENVIRONMENT=''
+	local	TEST_COLLECTION=''
+
+	#	TODO: replace this while with a "for i in {1..10}"
+	while [ ${INDEX} -lt ${NUM_INTEGRATION_TESTS} ]
+	do
+		TEST_DESCRIPTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].description" | tr -d '"' )"
+		TEST_TOOL="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].tool" | tr -d '"' )"
+		TEST_ENVIRONMENT="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].environment" | tr -d '"' )"
+		TEST_COLLECTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].collection" | tr -d '"' )"
+		TEST_ENTRY="${TEST_DESCRIPTION}:${TEST_TOOL} run '${TEST_COLLECTION}' --environment '${TEST_ENVIRONMENT}'"
+
+		if [ -z "${PROJECT_INTEGRATION_TESTS}" ]
+		then
+			PROJECT_INTEGRATION_TESTS="${TEST_ENTRY}"
+		else
+			PROJECT_INTEGRATION_TESTS="${PROJECT_INTEGRATION_TESTS}\n${TEST_ENTRY}"
+		fi
+		INDEX=$(( ${INDEX} + 1 ))
+	done
+
 	#	TODO: validate the values from config file
 	#	TODO: change the config file to allow specify custom golang compilation options
 	#	TODO: change the config file to allow specify the version of dependency packages
@@ -66,6 +103,11 @@ function loadProjectConfig {
 	if [ -z "${PROJECT_SOURCE_DIR}" ]
 	then
 		PROJECT_SOURCE_DIR='.'
+	fi
+
+	if [ -z "${PROJECT_TARGET}" ]
+	then
+		PROJECT_TARGET="${PROJECT_NAME}"
 	fi
 
 	#	validate source directory
@@ -171,8 +213,8 @@ function testTarget {
 
 	if [ $? -ne 0 ]
 	then
-		echo -e "[build] ${RED}unit tests failed${NOCOLOR}"
-		exit ${TEST_RESULT}
+		echo -e "[build] ${RED}error: unit tests failed${NOCOLOR}"
+		exit 1
 	fi
 }
 
@@ -186,10 +228,48 @@ function packageTarget {
 #	function to execute the "verify" target action
 function verifyTarget {
 
-	#	TODO: adjust the target
-	docker-compose up -d
-	newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
-	docker-compose stop
+	local	PID=''
+	local	ORIGINAL_IFS="${IFS}"
+	local	TEST_DESCRIPTION=''
+	local	TEST_COMMAND=''
+
+	echo -e "[build] ${TARGET}: ${GREEN}execute integration tests${NOCOLOR}"
+
+	#	TODO: check that there are at least one test
+
+	#	execute the project
+	if [ ! -f "${TARGET_DIR}/${PROJECT_TARGET}" ]
+	then
+		echo -e "[build] ${RED}error: project target file not found: use target \"compile\" to build it before target \"verify\"${NOCOLOR}"
+		exit 1
+	fi
+
+	#	TODO: should test if the project execution was successful
+	${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
+	PID=$!
+
+	#	TODO: only show the results of Newman if --verbose is true
+	#	TODO: if the test execution fails, should return an error
+	#	execute every integration test
+	IFS="$( echo -e "\n" )"
+
+	for INTEGRATION_TEST in ${PROJECT_INTEGRATION_TESTS}
+	do
+		TEST_DESCRIPTION="$( echo ${INTEGRATION_TEST} | cut -f1 -d':' )"
+		TEST_COMMAND="$( echo ${INTEGRATION_TEST} | cut -f2 -d':' )"
+
+		echo -e "[build] ${TARGET}: ${TEST_DESCRIPTION}${NOCOLOR}"
+		eval "${TEST_COMMAND}"
+	done
+
+	IFS="${ORIGINAL_IFS}"
+
+	#	stop the project execution
+	kill -9 ${PID}
+
+	#docker-compose up -d
+	#newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
+	#docker-compose stop
 }
 
 #	function to execute the "run" target action
@@ -292,8 +372,9 @@ then
 fi
 
 #	load project config files and perform every specified target
-checkRequiredTools
+checkBasicRequiredTools
 loadProjectConfig
+checkAdditionalRequiredTools
 
 for TARGET in ${TARGET_LIST}
 do
@@ -328,8 +409,6 @@ do
 
 		#	execute integration tests
 		verify )
-		echo -e "[build] ${TARGET}: ${GREEN}execute integration tests${NOCOLOR}"
-
 		verifyTarget
 		;;
 
