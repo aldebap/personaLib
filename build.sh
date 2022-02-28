@@ -11,7 +11,6 @@ export	LIGHTGRAY='\033[0;37m'
 export	NOCOLOR='\033[0m'
 
 #	set environment
-
 export	PROJECT_CONFIG_FILE='build.cfg'
 export	TARGET_DIR='bin'
 export	VERBOSE='false'
@@ -37,7 +36,7 @@ function checkBasicRequiredTools {
 	fi
 
 	#	 if jq is available
-	OUTPUT=$( which jq 2> /dev/null )
+	TMP_OUTPUT=$( which jq 2> /dev/null )
 	if [ $? -ne 0 ]
 	then
 		echo -e "[build] ${RED}error: 'jq' utility is required to run this script${NOCOLOR}"
@@ -50,7 +49,16 @@ function checkAdditionalRequiredTools {
 
 	local	TMP_OUTPUT=''
 
-	#	TODO: based on the configuration, check for availability of: newman, docker, docker-compose, ...
+	#	based on the configuration check for availability of any additionl tool
+	for TOOL in ${PROJECT_ADDITIONAL_TOOLS}
+	do
+		TMP_OUTPUT=$( which ${TOOL} 2> /dev/null )
+		if [ $? -ne 0 ]
+		then
+			echo -e "[build] ${RED}error: '${TOOL}' utility is required to run this script${NOCOLOR}"
+			exit 1
+		fi
+	done
 }
 
 #	function to load project configuration from config file
@@ -65,9 +73,56 @@ function loadProjectConfig {
 	export	PROJECT_PACKAGES="$( echo ${PROJECT_CONFIG} | jq '.packages | .[]' | tr -d '"' )"
 	export	PROJECT_TARGET="$( echo ${PROJECT_CONFIG} | jq '.target' | tr -d '"' )"
 	export	PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
+	export	PROJECT_TEST_DIR="$( echo ${PROJECT_CONFIG} | jq '.test_directory' | tr -d '"' )"
+	export	PROJECT_DOCKER_FILE="$( echo ${PROJECT_CONFIG} | jq '.docker_file' | tr -d '"' )"
+	export	PROJECT_ADDITIONAL_TOOLS=''
 
-	#	TODO: create a variable with the test directory (in config file + test as default)
-	#	TODO: to create an entry for newman, should check the tool to format the command
+	#	TODO: change the config file to allow specify custom golang compilation options
+	#	TODO: change the config file to allow specify the version of dependency packages
+
+	#	set default values for missing parameters
+	if [ -z "${PROJECT_SOURCE_DIR}" -o "${PROJECT_SOURCE_DIR}" == 'null' ]
+	then
+		PROJECT_SOURCE_DIR='.'
+	fi
+
+	if [ -z "${PROJECT_TEST_DIR}" -o "${PROJECT_TEST_DIR}" == 'null' ]
+	then
+		PROJECT_TEST_DIR='.'
+	fi
+
+	if [ -z "${PROJECT_TARGET}" -o "${PROJECT_TARGET}" == 'null' ]
+	then
+		PROJECT_TARGET="${PROJECT_NAME}"
+	fi
+
+	if [ -z "${PROJECT_DOCKER_FILE}" -o "${PROJECT_DOCKER_FILE}" == 'null' ]
+	then
+		PROJECT_DOCKER_FILE=''
+	fi
+
+	#	TODO: validate the values from config file
+
+	#	validate source directory
+	if [ ! -d "${PROJECT_SOURCE_DIR}" ]
+	then
+		echo -e "[build] ${RED}error: invalid source directory: ${PROJECT_SOURCE_DIR}${NOCOLOR}"
+		exit 1
+	fi
+
+	#	validate test directory
+	if [ ! -d "${PROJECT_TEST_DIR}" ]
+	then
+		echo -e "[build] ${RED}error: invalid test directory: ${PROJECT_TEST_DIR}${NOCOLOR}"
+		exit 1
+	fi
+
+	if [ ! -z "${PROJECT_DOCKER_FILE}" -a ! -f "${PROJECT_DOCKER_FILE}" ]
+	then
+		echo -e "[build] ${RED}error: Docker file not found: ${PROJECT_DOCKER_FILE}${NOCOLOR}"
+		exit 1
+	fi
+
 	#	load the integrated tests configuration
 	export	PROJECT_INTEGRATION_TESTS=''
 	local	NUM_INTEGRATION_TESTS=$( echo ${PROJECT_CONFIG} | jq '.integration_tests | length' )
@@ -76,45 +131,53 @@ function loadProjectConfig {
 	local	TEST_TOOL=''
 	local	TEST_ENVIRONMENT=''
 	local	TEST_COLLECTION=''
+	local	TEST_COMMAND=''
+	local	NEWMAN_REQUIRED='false'
 
-	#	TODO: replace this while with a "for i in {1..10}"
-	while [ ${INDEX} -lt ${NUM_INTEGRATION_TESTS} ]
-	do
-		TEST_DESCRIPTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].description" | tr -d '"' )"
-		TEST_TOOL="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].tool" | tr -d '"' )"
-		TEST_ENVIRONMENT="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].environment" | tr -d '"' )"
-		TEST_COLLECTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].collection" | tr -d '"' )"
-		TEST_ENTRY="${TEST_DESCRIPTION}:${TEST_TOOL} run '${TEST_COLLECTION}' --environment '${TEST_ENVIRONMENT}'"
-
-		if [ -z "${PROJECT_INTEGRATION_TESTS}" ]
-		then
-			PROJECT_INTEGRATION_TESTS="${TEST_ENTRY}"
-		else
-			PROJECT_INTEGRATION_TESTS="${PROJECT_INTEGRATION_TESTS}\n${TEST_ENTRY}"
-		fi
-		INDEX=$(( ${INDEX} + 1 ))
-	done
-
-	#	TODO: validate the values from config file
-	#	TODO: change the config file to allow specify custom golang compilation options
-	#	TODO: change the config file to allow specify the version of dependency packages
-
-	#	set default values for missing parameters
-	if [ -z "${PROJECT_SOURCE_DIR}" ]
+	if [ ${NUM_INTEGRATION_TESTS} -gt 0 ]
 	then
-		PROJECT_SOURCE_DIR='.'
+		for INDEX in {0..$(( ${NUM_INTEGRATION_TESTS} - 1 ))}
+		do
+			TEST_DESCRIPTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].description" | tr -d '"' )"
+			TEST_TOOL="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].tool" | tr -d '"' )"
+
+			case ${TEST_TOOL} in
+
+				#	format newman execution command
+				newman )
+				NEWMAN_REQUIRED='true'
+
+				TEST_ENVIRONMENT="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].environment" | tr -d '"' )"
+				TEST_COLLECTION="$( echo ${PROJECT_CONFIG} | jq ".integration_tests | .[${INDEX}].collection" | tr -d '"' )"
+
+				TEST_COMMAND="newman run '${PROJECT_TEST_DIR}/${TEST_COLLECTION}' --environment '${PROJECT_TEST_DIR}/${TEST_ENVIRONMENT}'"
+				;;
+
+				#	if it's not known or supported test tool
+				* )
+				echo -e "[build] ${RED}error: unknown/unsupported test tool: ${TEST_TOOL}${NOCOLOR}"
+				exit 1
+				;;
+			esac
+
+			if [ -z "${PROJECT_INTEGRATION_TESTS}" ]
+			then
+				PROJECT_INTEGRATION_TESTS="${TEST_DESCRIPTION}:${TEST_COMMAND}"
+			else
+				PROJECT_INTEGRATION_TESTS="${PROJECT_INTEGRATION_TESTS}\n${TEST_DESCRIPTION}:${TEST_COMMAND}"
+			fi
+		done
 	fi
 
-	if [ -z "${PROJECT_TARGET}" ]
+	#	set the list of additional tools
+	if [ ${NEWMAN_REQUIRED} == 'true' ]
 	then
-		PROJECT_TARGET="${PROJECT_NAME}"
+		PROJECT_ADDITIONAL_TOOLS='newman'
 	fi
 
-	#	validate source directory
-	if [ ! -d "${PROJECT_SOURCE_DIR}" ]
+	if [ ! -z ${PROJECT_DOCKER_FILE} ]
 	then
-		echo -e "[build] ${RED}error: invalid source directory: ${PROJECT_SOURCE_DIR}${NOCOLOR}"
-		exit 1
+		PROJECT_ADDITIONAL_TOOLS="${PROJECT_ADDITIONAL_TOOLS} docker"
 	fi
 }
 
@@ -158,6 +221,7 @@ function dependenciesTarget {
 	do
 		echo "require ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished" >> go.mod
 		echo "replace ${PROJECT_NAME}/${PACKAGE} v0.0.0-unpublished => ./${PACKAGE}" >> go.mod
+		#	TODO: check if this works !
 		#echo go mod edit -replace ${PROJECT_NAME}/${PACKAGE}=../src/${PACKAGE}
 	done
 
@@ -221,8 +285,19 @@ function testTarget {
 #	function to execute the "package" target action
 function packageTarget {
 
-	#	TODO: adjust the target
-	docker build --tag shopping-cart .
+	local	DOCKER_FLAGS=''
+
+	echo -e "[build] ${TARGET}: ${GREEN}package the target in a Docker image${NOCOLOR}"
+
+	if [ ! -z "${PROJECT_DOCKER_FILE}" ]
+	then
+		if [ "${VERBOSE}" == 'false' ]
+		then
+			DOCKER_FLAGS='--quiet'
+		fi
+
+		docker build --tag  $( echo ${PROJECT_TARGET} | tr [:upper:] [:lower:] ) --file ${PROJECT_DOCKER_FILE} ${DOCKER_FLAGS} .
+	fi
 }
 
 #	function to execute the "verify" target action
@@ -292,7 +367,7 @@ do
 
 	case ${ARG} in
 
-	#	help message option
+		#	help message option
 		--help )
 		cat <<HELP_MESSAGE
 $( basename ${0} ): [options] targets
@@ -316,24 +391,24 @@ HELP_MESSAGE
 		exit 0
 		;;
 
-	#	config file name option
+		#	config file name option
 		--config-file )
 		PROJECT_CONFIG_FILE=${2}
 		shift
 		;;
 
-	#	target directory name option
+		#	target directory name option
 		--target-dir )
 		TARGET_DIR=${2}
 		shift
 		;;
 
-	#	verbose option
+		#	verbose option
 		--verbose )
 		VERBOSE='true'
 		;;
 
-	#	if it's not an option, it's a target
+		#	if it's not an option, it's a target
 		* )
 		if [ -z "${TARGET_LIST}" ]
 		then
@@ -402,8 +477,6 @@ do
 
 		#	package the target in a Docker image
 		package )
-		echo -e "[build] ${TARGET}: ${GREEN}package the target in a Docker image${NOCOLOR}"
-
 		packageTarget
 		;;
 
