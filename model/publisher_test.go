@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
-//	author_test.go  -  Feb/20/2022  -  aldebap
+//	publisher_test.go  -  Mar/01/2022  -  aldebap
 //
-//	Author entity tests
+//	Publisher entity tests
 ////////////////////////////////////////////////////////////////////////////////
 
 package model
@@ -12,8 +12,8 @@ import (
 )
 
 //	scenario 01 - test name validation
-func TestAuthorsNameValidation(t *testing.T) {
-	t.Run(">>> author's name validation", func(t *testing.T) {
+func TestPublisherNameValidation(t *testing.T) {
+	t.Run(">>> publisher's name validation", func(t *testing.T) {
 
 		//	some test cases
 		var testScenarios = []struct {
@@ -32,23 +32,23 @@ func TestAuthorsNameValidation(t *testing.T) {
 		for i, test := range testScenarios {
 			fmt.Printf("scenario: 01.%02d name: '%s'\texpected: %t\n", i+1, test.input, test.result)
 
-			author := NewAuthor(test.input)
+			publisher := NewPublisher(test.input)
 
 			want := test.result
-			got := author.IsValid()
+			got := publisher.IsValid()
 
 			if want != got {
-				t.Errorf("Author's validation: got %t, want %t", got, want)
+				t.Errorf("Publisher's validation: got %t, want %t", got, want)
 			}
 		}
 	})
 }
 
 //	scenario 02 - test to check that a buffer overflow attempt is not valid
-func TestAuthorsBufferOverflow(t *testing.T) {
-	t.Run(">>> buffer overflow on author's name", func(t *testing.T) {
+func TestPublishersBufferOverflow(t *testing.T) {
+	t.Run(">>> buffer overflow on publisher's name", func(t *testing.T) {
 
-		author := NewAuthor("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+		publisher := NewPublisher("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
 			"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
 			"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
 			"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
@@ -90,9 +90,9 @@ func TestAuthorsBufferOverflow(t *testing.T) {
 			"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890")
 
 		want := false
-		got := author.IsValid()
+		got := publisher.IsValid()
 		if want != got {
-			t.Errorf("Author's validation: got %t, want %t", got, want)
+			t.Errorf("Publisher's validation: got %t, want %t", got, want)
 		}
 	})
 }
