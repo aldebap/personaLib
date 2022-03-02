@@ -65,20 +65,57 @@ function checkAdditionalRequiredTools {
 function loadProjectConfig {
 
 	local	PROJECT_CONFIG="$( cat ${PROJECT_CONFIG_FILE} )"
+	local	NUM_SOURCE_FILES=$( echo ${PROJECT_CONFIG} | jq '.source | length' )
+	local	NUM_PACKAGES=$( echo ${PROJECT_CONFIG} | jq '.packages | length' )
+	local	NUM_DEPENDENCIES=$( echo ${PROJECT_CONFIG} | jq '.dependencies | length' )
 
 	export	PROJECT_NAME="$( echo ${PROJECT_CONFIG} | jq '.project' | tr -d '"' )"
 	export	PROJECT_DESCRIPTION="$( echo ${PROJECT_CONFIG} | jq '.description' | tr -d '"' )"
 	export	PROJECT_SOURCE_DIR="$( echo ${PROJECT_CONFIG} | jq '.source_directory' | tr -d '"' )"
-	export	PROJECT_SOURCE="$( echo ${PROJECT_CONFIG} | jq '.source | .[]' | tr -d '"' )"
-	export	PROJECT_PACKAGES="$( echo ${PROJECT_CONFIG} | jq '.packages | .[]' | tr -d '"' )"
+
+	if [ ${NUM_SOURCE_FILES} -eq 0 ]
+	then
+		export	PROJECT_SOURCE=''
+	else
+		export	PROJECT_SOURCE="$( echo ${PROJECT_CONFIG} | jq '.source | .[]' | tr -d '"' )"
+	fi
+
+	if [ ${NUM_PACKAGES} -eq 0 ]
+	then
+		export	PROJECT_PACKAGES=''
+	else
+		export	PROJECT_PACKAGES="$( echo ${PROJECT_CONFIG} | jq '.packages | .[]' | tr -d '"' )"
+	fi
+
 	export	PROJECT_TARGET="$( echo ${PROJECT_CONFIG} | jq '.target' | tr -d '"' )"
-	export	PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
+
+	if [ ${NUM_DEPENDENCIES} -eq 0 ]
+	then
+		export	PROJECT_DEPENDENCIES=''
+	else
+		export	PROJECT_DEPENDENCIES="$( echo ${PROJECT_CONFIG} | jq '.dependencies | .[]' | tr -d '"' )"
+	fi
+
+	export	PROJECT_BUILD_FLAGS="$( echo ${PROJECT_CONFIG} | jq '.build_flags' | tr -d '"' )"
+	export	PROJECT_TEST_FLAGS="$( echo ${PROJECT_CONFIG} | jq '.test_flags' | tr -d '"' )"
 	export	PROJECT_TEST_DIR="$( echo ${PROJECT_CONFIG} | jq '.test_directory' | tr -d '"' )"
 	export	PROJECT_DOCKER_FILE="$( echo ${PROJECT_CONFIG} | jq '.docker_file' | tr -d '"' )"
 	export	PROJECT_ADDITIONAL_TOOLS=''
 
-	#	TODO: change the config file to allow specify custom golang compilation options
 	#	TODO: change the config file to allow specify the version of dependency packages
+
+	#	check all required parameters
+	if [ -z "${PROJECT_NAME}" -o "${PROJECT_NAME}" == 'null' ]
+	then
+		echo -e "[build] ${RED}error: required field \"project\" missing or empty on configuration file: ${PROJECT_CONFIG_FILE}${NOCOLOR}"
+		exit 1
+	fi
+
+	if [ -z "${PROJECT_DESCRIPTION}" -o "${PROJECT_DESCRIPTION}" == 'null' ]
+	then
+		echo -e "[build] ${RED}error: required field \"description\" missing or empty on configuration file: ${PROJECT_CONFIG_FILE}${NOCOLOR}"
+		exit 1
+	fi
 
 	#	set default values for missing parameters
 	if [ -z "${PROJECT_SOURCE_DIR}" -o "${PROJECT_SOURCE_DIR}" == 'null' ]
@@ -86,9 +123,10 @@ function loadProjectConfig {
 		PROJECT_SOURCE_DIR='.'
 	fi
 
-	if [ -z "${PROJECT_TEST_DIR}" -o "${PROJECT_TEST_DIR}" == 'null' ]
+	if [ -z "${PROJECT_SOURCE}" -o "${PROJECT_SOURCE}" == 'null' ]
 	then
-		PROJECT_TEST_DIR='.'
+		PROJECT_SOURCE="$( ls ${PROJECT_SOURCE_DIR}/*.go )"
+		echo -e "[debug] ${LIGHTGRAY}project source files: ${PROJECT_SOURCE}${NOCOLOR}"
 	fi
 
 	if [ -z "${PROJECT_TARGET}" -o "${PROJECT_TARGET}" == 'null' ]
@@ -96,12 +134,15 @@ function loadProjectConfig {
 		PROJECT_TARGET="${PROJECT_NAME}"
 	fi
 
+	if [ -z "${PROJECT_TEST_DIR}" -o "${PROJECT_TEST_DIR}" == 'null' ]
+	then
+		PROJECT_TEST_DIR='.'
+	fi
+
 	if [ -z "${PROJECT_DOCKER_FILE}" -o "${PROJECT_DOCKER_FILE}" == 'null' ]
 	then
 		PROJECT_DOCKER_FILE=''
 	fi
-
-	#	TODO: validate the values from config file
 
 	#	validate source directory
 	if [ ! -d "${PROJECT_SOURCE_DIR}" ]
@@ -117,6 +158,7 @@ function loadProjectConfig {
 		exit 1
 	fi
 
+	#	validate test directory
 	if [ ! -z "${PROJECT_DOCKER_FILE}" -a ! -f "${PROJECT_DOCKER_FILE}" ]
 	then
 		echo -e "[build] ${RED}error: Docker file not found: ${PROJECT_DOCKER_FILE}${NOCOLOR}"
@@ -247,7 +289,7 @@ function compileTarget {
 
 	#	TODO: test if it works when the source dir is different than "."
 	cd "${PROJECT_SOURCE_DIR}"
-	go build -o "${BUILD_DIR}/${TARGET_DIR}/${PROJECT_TARGET}" ${PROJECT_SOURCE}
+	go build ${PROJECT_BUILD_FLAGS} -o "${BUILD_DIR}/${TARGET_DIR}/${PROJECT_TARGET}" ${PROJECT_SOURCE}
 	cd "${BUILD_DIR}"
 }
 
@@ -255,7 +297,7 @@ function compileTarget {
 function testTarget {
 
 	local	BUILD_DIR="$( pwd )"
-	local	GOTEST_FLAGS=''
+	local	GOTEST_FLAGS="${PROJECT_TEST_FLAGS}"
 	local	GOTEST_PACKAGES='.'
 
 	echo -e "[build] ${TARGET}: ${GREEN}running unit tests${NOCOLOR}"
@@ -310,7 +352,11 @@ function verifyTarget {
 
 	echo -e "[build] ${TARGET}: ${GREEN}execute integration tests${NOCOLOR}"
 
-	#	TODO: check that there are at least one test
+	#	check that there are at least one test
+	if [ -z "${PROJECT_INTEGRATION_TESTS}" ]
+	then
+		echo -e "[build] ${LIGHTGRAY}nothing to do for \"verify\" target${NOCOLOR}"
+	fi
 
 	#	execute the project
 	if [ ! -f "${TARGET_DIR}/${PROJECT_TARGET}" ]
@@ -319,12 +365,14 @@ function verifyTarget {
 		exit 1
 	fi
 
-	#	TODO: should test if the project execution was successful
 	${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
+	if [ $? -ne 0 ]
+	then
+		echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
+		exit 1
+	fi
 	PID=$!
 
-	#	TODO: only show the results of Newman if --verbose is true
-	#	TODO: if the test execution fails, should return an error
 	#	execute every integration test
 	IFS="$( echo -e "\n" )"
 
@@ -334,7 +382,19 @@ function verifyTarget {
 		TEST_COMMAND="$( echo ${INTEGRATION_TEST} | cut -f2 -d':' )"
 
 		echo -e "[build] ${TARGET}: ${TEST_DESCRIPTION}${NOCOLOR}"
-		eval "${TEST_COMMAND}"
+
+		if [ "${VERBOSE}" == 'false' ]
+		then
+			eval "${TEST_COMMAND}" 1> /dev/null
+		else
+			eval "${TEST_COMMAND}"
+		fi
+
+		if [ $? -ne 0 ]
+		then
+			echo -e "[build] ${RED}error: integration tests failed${NOCOLOR}"
+			exit 1
+		fi
 	done
 
 	IFS="${ORIGINAL_IFS}"
