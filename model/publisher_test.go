@@ -22,11 +22,11 @@ func TestPublisherNameValidation(t *testing.T) {
 		}{
 			{input: "", result: false},
 			{input: "123456789012345678901234567890123456789012345678901", result: false},
-			{input: "Joao da Silva & Souza", result: false},
-			{input: "Joao da Silva ' or true '", result: false},
+			{input: "Editora Cruz & Souza", result: false},
+			{input: "Editora Joao de Barro ' or true '", result: false},
 			{input: "12345678901234567890123456789012345678901234567890", result: true},
-			{input: "Joao da Silva", result: true},
-			{input: "João José da Silva", result: true},
+			{input: "Editora Livros do Brasil", result: true},
+			{input: "Editora Letras em Ação", result: true},
 		}
 
 		for i, test := range testScenarios {

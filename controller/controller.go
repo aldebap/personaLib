@@ -13,47 +13,6 @@ import (
 	"personaLib/store"
 )
 
-//	get publisher response
-type getPublisherResponse struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-//	fetch all publishers response
-type getAllPublisherResponse struct {
-	Publisher []getPublisherResponse `json:"publisher"`
-}
-
-//	get all publishers API
-func GetAllPublishers(httpResponse http.ResponseWriter, httpRequest *http.Request) {
-
-	//	get all publishers from database
-	var publisherList []store.Publisher
-
-	publisherList, err := store.GetAllPublisher()
-	if err != nil {
-		httpResponse.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//	fill response payload
-	var responseData = getAllPublisherResponse{}
-
-	for _, item := range publisherList {
-
-		var publisherData = getPublisherResponse{}
-
-		publisherData.ID = item.Id
-		publisherData.Name = item.Name
-
-		responseData.Publisher = append(responseData.Publisher, publisherData)
-	}
-
-	httpResponse.Header().Add("Content-Type", "application/json")
-	httpResponse.WriteHeader(http.StatusOK)
-	json.NewEncoder(httpResponse).Encode(responseData)
-}
-
 //	get book response
 type getBookResponse struct {
 	ID        string `json:"id"`

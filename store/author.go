@@ -23,7 +23,7 @@ type Author struct {
 }
 
 //	create a new model Author from store document author
-func FromDocument(author Author) *model.Author {
+func AuthorFromDocument(author Author) *model.Author {
 	return &model.Author{
 		Id:   author.Id.Hex(),
 		Name: author.Name,
@@ -45,7 +45,7 @@ func AddAuthor(author *model.Author) (*model.Author, error) {
 		return nil, err
 	}
 
-	return FromDocument(newAuthor), nil
+	return AuthorFromDocument(newAuthor), nil
 }
 
 //	get author by ID from collection
@@ -65,7 +65,7 @@ func GetAuthorByID(Id *model.ID) (*model.Author, error) {
 		return nil, err
 	}
 
-	return FromDocument(author), nil
+	return AuthorFromDocument(author), nil
 }
 
 //	get all authors from collection
@@ -89,7 +89,7 @@ func GetAllAuthor() ([]model.Author, error) {
 	}
 
 	for _, item := range authorList {
-		resultAuthorList = append(resultAuthorList, *FromDocument(item))
+		resultAuthorList = append(resultAuthorList, *AuthorFromDocument(item))
 	}
 
 	return resultAuthorList, nil
