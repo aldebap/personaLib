@@ -410,8 +410,22 @@ function verifyTarget {
 #	function to execute the "run" target action
 function runTarget {
 
-	#	TODO: adjust the target
-	docker-compose up
+	#	TODO: need to check if config file specify a Docker file and/or a Docker compose file to decide how to run it
+	#	execute the project
+	if [ ! -f "${TARGET_DIR}/${PROJECT_TARGET}" ]
+	then
+		echo -e "[build] ${RED}error: project target file not found: use target \"compile\" to build it before target \"verify\"${NOCOLOR}"
+		exit 1
+	fi
+
+	${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
+		exit 1
+	fi
+
+	#docker-compose up
 }
 
 #	CLI arguments parsing

@@ -30,7 +30,7 @@ func PublisherFromDocument(publisher Publisher) *model.Publisher {
 }
 
 //	add publisher to collection
-func AddPublissher(publisher *model.Publisher) (*model.Publisher, error) {
+func AddPublisher(publisher *model.Publisher) (*model.Publisher, error) {
 
 	var newPublisher Publisher
 
