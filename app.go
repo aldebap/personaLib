@@ -84,7 +84,12 @@ func (a *App) Run() {
 	a.httpRouter.HandleFunc("/author/{id}", controller.PatchAuthor).Methods(http.MethodPatch)
 	a.httpRouter.HandleFunc("/author/{id}", controller.DeleteAuthor).Methods(http.MethodDelete)
 
+	a.httpRouter.HandleFunc("/publisher", controller.AddPublisher).Methods(http.MethodPost)
+	a.httpRouter.HandleFunc("/publisher/{id}", controller.GetPublisher).Methods(http.MethodGet)
 	a.httpRouter.HandleFunc("/publisher", controller.GetAllPublishers).Methods(http.MethodGet)
+	a.httpRouter.HandleFunc("/publisher/{id}", controller.PatchPublisher).Methods(http.MethodPatch)
+	a.httpRouter.HandleFunc("/publisher/{id}", controller.DeletePublisher).Methods(http.MethodDelete)
+
 	a.httpRouter.HandleFunc("/book", controller.GetAllBooks).Methods(http.MethodGet)
 
 	http.Handle("/", a.httpRouter)
