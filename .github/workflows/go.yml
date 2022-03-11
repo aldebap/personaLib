@@ -75,4 +75,4 @@ jobs:
         shell: bash
         run: |
           cd ${HOME_PATH}
-          echo ./build.sh verify
+          ./build.sh verify

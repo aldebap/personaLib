@@ -1,0 +1,23 @@
+version: "3.3"
+services:
+  mongo:
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+    command: --config /etc/mongo/mongod.conf
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=
+      - MONGO_INITDB_ROOT_PASSWORD=
+      - MONGO_INITDB_DATABASE=Bookshelf
+    volumes:
+      - ./config:/etc/mongo
+      - ./script:/docker-entrypoint-initdb.d
+
+  personaLib:
+    build: .
+    depends-on: mongo
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASEURL=mongodb://mongo:27017/Bookshelf?retryWrites=true&w=majority
+      - SERVICEPORT=8080

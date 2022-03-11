@@ -365,13 +365,14 @@ function verifyTarget {
 		exit 1
 	fi
 
-	${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
-	if [ $? -ne 0 ]
-	then
-		echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
-		exit 1
-	fi
-	PID=$!
+	#${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
+	#if [ $? -ne 0 ]
+	#then
+	#	echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
+	#	exit 1
+	#fi
+	#PID=$!
+	docker-compose up -d
 
 	#	execute every integration test
 	IFS="$( echo -e "\n" )"
@@ -400,11 +401,8 @@ function verifyTarget {
 	IFS="${ORIGINAL_IFS}"
 
 	#	stop the project execution
-	kill -9 ${PID}
-
-	#docker-compose up -d
-	#newman run 'test/Integrated Tests.postman_collection.json' --environment 'test/Localhost.postman_environment.json'
-	#docker-compose stop
+	#kill -9 ${PID}
+	docker-compose stop
 }
 
 #	function to execute the "run" target action
