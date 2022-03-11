@@ -13,7 +13,7 @@ services:
       - ./config:/etc/mongo
       - ./script:/docker-entrypoint-initdb.d
 
-  personaLib:
+  personalib:
     build: .
     ports:
       - "8080:8080"
