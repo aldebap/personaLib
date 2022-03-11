@@ -6,7 +6,7 @@ FROM golang:1.17-alpine AS build
 WORKDIR /personaLib
 
 COPY main.go app.go go.mod go.sum ./
-COPY controller/author.go controller/controller.go controller/go.mod controller/publisher.go ./controller/
+COPY controller/author.go controller/book.go controller/controller.go controller/go.mod controller/publisher.go ./controller/
 COPY model/author.go model/id.go model/go.mod model/publisher.go ./model/
 COPY store/author.go store/book.go store/collection.go store/go.mod store/publisher.go ./store/
 
