@@ -100,9 +100,11 @@ function loadProjectConfig {
 	export	PROJECT_TEST_FLAGS="$( echo ${PROJECT_CONFIG} | jq '.test_flags' | tr -d '"' )"
 	export	PROJECT_TEST_DIR="$( echo ${PROJECT_CONFIG} | jq '.test_directory' | tr -d '"' )"
 	export	PROJECT_DOCKER_FILE="$( echo ${PROJECT_CONFIG} | jq '.docker_file' | tr -d '"' )"
+	export	PROJECT_DOCKER_COMPOSE_FILE="$( echo ${PROJECT_CONFIG} | jq '.docker_compose_file' | tr -d '"' )"
 	export	PROJECT_ADDITIONAL_TOOLS=''
 
 	#	TODO: change the config file to allow specify the version of dependency packages
+	#	TODO: change the config file to allow specify an environment file
 
 	#	check all required parameters
 	if [ -z "${PROJECT_NAME}" -o "${PROJECT_NAME}" == 'null' ]
@@ -220,6 +222,11 @@ function loadProjectConfig {
 	if [ ! -z ${PROJECT_DOCKER_FILE} ]
 	then
 		PROJECT_ADDITIONAL_TOOLS="${PROJECT_ADDITIONAL_TOOLS} docker"
+	fi
+
+	if [ ! -z ${PROJECT_DOCKER_COMPOSE_FILE} ]
+	then
+		PROJECT_ADDITIONAL_TOOLS="${PROJECT_ADDITIONAL_TOOLS} docker-compose"
 	fi
 }
 
@@ -346,6 +353,7 @@ function packageTarget {
 function verifyTarget {
 
 	local	PID=''
+	local	ERROR='false'
 	local	ORIGINAL_IFS="${IFS}"
 	local	TEST_DESCRIPTION=''
 	local	TEST_COMMAND=''
@@ -365,14 +373,32 @@ function verifyTarget {
 		exit 1
 	fi
 
-	#${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
-	#if [ $? -ne 0 ]
-	#then
-	#	echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
-	#	exit 1
-	#fi
-	#PID=$!
-	docker-compose up -d
+	#	precedence for execute the application: Docker-composse, Docker or the binary file
+	if [ ! -z "${PROJECT_DOCKER_COMPOSE_FILE}" ]
+	then
+		local	DOCKER_COMPOSE_FLAGS='--detach --force-recreate'
+
+		if [ "${VERBOSE}" == 'false' ]
+		then
+			docker-compose --file "${PROJECT_DOCKER_COMPOSE_FILE}" up ${DOCKER_COMPOSE_FLAGS}
+		else
+			docker-compose --file "${PROJECT_DOCKER_COMPOSE_FILE}" --verbose up ${DOCKER_COMPOSE_FLAGS}
+		fi
+	else
+		if [ ! -z "${PROJECT_DOCKER_FILE}" ]
+		then
+			#	TODO: add the execution using docker
+			echo
+		else
+			${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null &
+			if [ $? -ne 0 ]
+			then
+				echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
+				exit 1
+			fi
+			PID=$!
+		fi
+	fi
 
 	#	execute every integration test
 	IFS="$( echo -e "\n" )"
@@ -382,7 +408,7 @@ function verifyTarget {
 		TEST_DESCRIPTION="$( echo ${INTEGRATION_TEST} | cut -f1 -d':' )"
 		TEST_COMMAND="$( echo ${INTEGRATION_TEST} | cut -f2 -d':' )"
 
-		echo -e "[build] ${TARGET}: ${TEST_DESCRIPTION}${NOCOLOR}"
+		echo -e "[build] ${TARGET}: ${LIGHTGRAY}${TEST_DESCRIPTION}${NOCOLOR}"
 
 		if [ "${VERBOSE}" == 'false' ]
 		then
@@ -394,21 +420,37 @@ function verifyTarget {
 		if [ $? -ne 0 ]
 		then
 			echo -e "[build] ${RED}error: integration tests failed${NOCOLOR}"
-			exit 1
+			ERROR='true'
 		fi
 	done
 
 	IFS="${ORIGINAL_IFS}"
 
-	#	stop the project execution
-	#kill -9 ${PID}
-	docker-compose stop
+	#	stop the execution of the application
+	if [ ! -z "${PROJECT_DOCKER_COMPOSE_FILE}" ]
+	then
+		local	DOCKER_COMPOSE_FLAGS='--remove-orphans'
+
+		docker-compose --file "${PROJECT_DOCKER_COMPOSE_FILE}" down ${DOCKER_COMPOSE_FLAGS}
+	else
+		if [ ! -z "${PROJECT_DOCKER_FILE}" ]
+		then
+			#	TODO: add the execution using docker
+			echo
+		else
+			kill -9 ${PID}
+		fi
+	fi
+
+	if [ ${ERROR} == "true" ]
+	then
+		exit 1
+	fi
 }
 
 #	function to execute the "run" target action
 function runTarget {
 
-	#	TODO: need to check if config file specify a Docker file and/or a Docker compose file to decide how to run it
 	#	execute the project
 	if [ ! -f "${TARGET_DIR}/${PROJECT_TARGET}" ]
 	then
@@ -416,14 +458,31 @@ function runTarget {
 		exit 1
 	fi
 
-	${TARGET_DIR}/${PROJECT_TARGET} 1> /dev/null 2> /dev/null
-	if [ $? -ne 0 ]
+	#	precedence for execute the application: Docker-composse, Docker or the binary file
+	if [ ! -z "${PROJECT_DOCKER_COMPOSE_FILE}" ]
 	then
-		echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
-		exit 1
-	fi
+		local	DOCKER_COMPOSE_FLAGS='--force-recreate '
 
-	#docker-compose up
+		if [ "${VERBOSE}" == 'false' ]
+		then
+			docker-compose --file "${PROJECT_DOCKER_COMPOSE_FILE}" up ${DOCKER_COMPOSE_FLAGS}
+		else
+			docker-compose --file "${PROJECT_DOCKER_COMPOSE_FILE}" --verbose up ${DOCKER_COMPOSE_FLAGS}
+		fi
+	else
+		if [ ! -z "${PROJECT_DOCKER_FILE}" ]
+		then
+			#	TODO: add the execution using docker
+			echo
+		else
+			${TARGET_DIR}/${PROJECT_TARGET}
+			if [ $? -ne 0 ]
+			then
+				echo -e "[build] ${RED}error: cannot run the project target file: ${TARGET_DIR}/${PROJECT_TARGET}${NOCOLOR}"
+				exit 1
+			fi
+		fi
+	fi
 }
 
 #	CLI arguments parsing

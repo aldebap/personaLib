@@ -17,7 +17,7 @@ FROM alpine:latest
 
 WORKDIR /personaLib
 
-COPY --from=build /personaLib/bin/server ./bin
+COPY --from=build /personaLib/bin/server ./bin/
 
 EXPOSE 8080
 ENTRYPOINT ["/personaLib/bin/server"]
