@@ -28,6 +28,11 @@ jobs:
         with:
           node-version: "14"
 
+      - name: Set up VueJS
+        shell: bash
+        run: |
+          npm install -g @vue/cli
+
       - name: Install Korn shell
         shell: bash
         run: |

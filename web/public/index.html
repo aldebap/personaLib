@@ -1,0 +1,87 @@
+<head>
+</head>
+
+<body>
+  <noscript>
+    <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
+        Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+</body>
+
+</html>
+
+<!DOCTYPE html>
+
+<html>
+<!-- Page header -->
+
+<head>
+  <!-- Required meta tags for jQuery -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  </link>
+
+  <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/popper.min.js' %}"></script>
+
+  <!-- header -->
+  <title>
+    <%= htmlWebpackPlugin.options.title %>
+  </title>
+</head>
+
+<!-- Page body -->
+
+<body>
+  <!-- menu panel -->
+  <div id="App">
+    <h1>{{ name }}</h1>
+  </div>
+  <!-- Navigation bar -->
+  <nav class="navbar navbar-dark bg-dark">
+    <!--
+		<a class="navbar-brand" href="index.html">
+			<img src="img/logo.png" width="30" height="30" alt="" />
+		</a>
+
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContentViews" aria-controls="navbarContentViews"
+		 aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse" id="navbarContentViews">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item dropdown">
+				-->
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+      aria-haspopup="true" aria-expanded="false">
+      Menu
+    </a>
+    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+      <a class="dropdown-item" onclick="return false;">Books</a>
+      <a class="dropdown-item" onclick="return false;">Authors</a>
+      <a class="dropdown-item" onclick="return false;">Publishers</a>
+    </div>
+
+    <form class="form-inline my-2 my-lg-0">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">New Book</button>
+    </form>
+  </nav>
+
+  <!-- container -->
+  <div class="container-fluid">
+
+    <!-- content -->
+    <div id="content"></div>
+  </div>
+</body>
+
+</html>
