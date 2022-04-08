@@ -22,7 +22,7 @@ type Book struct {
 
 //	compile the validation regexp
 func init() {
-	bookValidCharacters = regexp.MustCompile("^[a-zA-ZàáãéêíóôúüçÀÁÃÉÊÍÓÔÚÜÇ 0-9.]{1,50}$")
+	bookValidCharacters = regexp.MustCompile("^[a-zA-ZàáãéêíóôúüçÀÁÃÉÊÍÓÔÚÜÇ 0-9.:-]{1,50}$")
 }
 
 //	create a new Book

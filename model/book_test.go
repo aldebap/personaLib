@@ -22,11 +22,12 @@ func TestBookNameValidation(t *testing.T) {
 		}{
 			{input: "", result: false},
 			{input: "123456789012345678901234567890123456789012345678901", result: false},
-			{input: "Joao da Silva & Souza", result: false},
-			{input: "Joao da Silva ' or true '", result: false},
+			{input: "Planning & Sheduling", result: false},
+			{input: "Walden ' or true '", result: false},
 			{input: "12345678901234567890123456789012345678901234567890", result: true},
-			{input: "Joao da Silva", result: true},
-			{input: "João José da Silva", result: true},
+			{input: "On the Road", result: true},
+			{input: "On the Road - Pé na estrada", result: true},
+			{input: "Yoga: A gem for women", result: true},
 		}
 
 		for i, test := range testScenarios {
@@ -38,7 +39,7 @@ func TestBookNameValidation(t *testing.T) {
 			got := book.IsValid()
 
 			if want != got {
-				t.Errorf("Book's validation: got %t, want %t", got, want)
+				t.Errorf("Book's \"%s\" validation: got %t, want %t", book.Title, got, want)
 			}
 		}
 	})
