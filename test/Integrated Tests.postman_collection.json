@@ -2178,6 +2178,111 @@
 			"name": "Valid tests for /book",
 			"item": [
 				{
+					"name": "Add a book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 201 Created\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 201 );",
+									"});",
+									"",
+									"//  Parse the response to get the Id of new book",
+									"var jsonData = JSON.parse( responseBody );",
+									"",
+									"postman.setGlobalVariable( 'book-id', jsonData.id );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'book-title', \"On the Road\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book-title}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a book by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{app-domain}}/book/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{book-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get all books",
 					"event": [
 						{
@@ -2203,21 +2308,9 @@
 							}
 						}
 					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
 							"raw": "{{app-domain}}/book",
 							"host": [
@@ -2225,6 +2318,113 @@
 							],
 							"path": [
 								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'book-title', \"Visions of Cody\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book-title}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{book-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 200 OK\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 200 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{app-domain}}/book/:id",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{book-id}}"
+								}
 							]
 						}
 					},
@@ -2249,6 +2449,384 @@
 							""
 						]
 					}
+				}
+			]
+		},
+		{
+			"name": "Error tests for /book",
+			"item": [
+				{
+					"name": "Invalid content-type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 415 Unsupported Media Type\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 415 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<publisher>\n    <name>{{book-title}}</name>\n</publisher>\n",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Missing content length",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 411 Length Required\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 411 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-length": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Empty payload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid payload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<publisher>\n    <name>{{book-title}}</name>\n</publisher>\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Empty book's title",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'book-title', \"\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book-title}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book's title bigger that limit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'book-title', \"On the Road: Pé na estrada, pé na tábua, vamos de carona, entrei de gaiato num navio, entrei pelo cano\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book-title}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book's title with invalid characters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//  check the HTTP return code",
+									"pm.test(\"HTTP retornou 400 Bad Request\", () => {",
+									"    pm.expect( responseCode.code ).to.eql( 400 );",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//  set the data for the test",
+									"postman.setGlobalVariable( 'book-title', \"On the Road: 'Pé na estrada'\" );",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book-title}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{app-domain}}/book",
+							"host": [
+								"{{app-domain}}"
+							],
+							"path": [
+								"book"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
